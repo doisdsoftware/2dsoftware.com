@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>2D Software | Tecnologia de Alto Impacto</title>
+    <script>
+      (function(){
+        try {
+          const _warn = console.warn.bind(console);
+          console.warn = function(...args){
+            try {
+              const joined = args.map(a=>String(a)).join(' ');
+              if (/Removing unpermitted intrinsics|lockdown-install|SES|MetaMask|THREE\.Clock/i.test(joined)) return;
+            } catch(e) {}
+            _warn(...args);
+          };
+
+          window.addEventListener('error', function(ev){
+            try {
+              if (ev && ev.message && /Removing unpermitted intrinsics|lockdown-install|SES/i.test(ev.message)) {
+                ev.preventDefault && ev.preventDefault();
+                return;
+              }
+            } catch(e) {}
+          }, true);
+
+          window.addEventListener('unhandledrejection', function(ev){
+            try {
+              const reason = ev && ev.reason;
+              if (reason && reason.message && /Failed to connect to MetaMask|MetaMask extension not found/i.test(reason.message)) {
+                ev.preventDefault && ev.preventDefault();
+                return;
+              }
+            } catch(e) {}
+          }, true);
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Tailwind will be processed locally via PostCSS in production -->
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Global CSS is provided in /index.css (includes Tailwind directives and project overrides) -->
+<script type="importmap">
+{
+  "imports": {
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

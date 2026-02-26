@@ -1,0 +1,53 @@
+# Node
+node_modules/
+
+# Build
+/dist/
+/build/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Env
+.env
+.env.*
+
+# Misc
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Prints
+prints/
+
+# Others
+*.swp
+*.swo
+
+# Exclude OneDrive sync files
+*.lnk
+~$*
+
+# Exclude backups
+*.bak
+*.tmp
+
+# Exclude coverage
+coverage/
+
+# Exclude test outputs
+*.out
+
+# Exclude package lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

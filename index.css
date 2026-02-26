@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Project overrides and typography rhythm */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  overflow-x: hidden;
+}
+h1, h2, h3, h4 { font-family: 'Sora', sans-serif; }
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #2563eb, #7c3aed, #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-grid {
+  background-size: 60px 60px;
+  background-image: linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+}
+
+/* Scrollbar (non-standard) */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f1f5f9; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@keyframes flow { from { transform: translateX(-100%); } to { transform: translateX(100vw); } }
+.data-stream { position: absolute; height: 1px; background: linear-gradient(90deg, transparent, #60a5fa, transparent); width: 300px; opacity: 0.2; animation: flow 5s linear infinite; }
+
+/* Global typography and rhythm adjustments */
+h1, h2, h3, h4 {
+  font-family: 'Sora', sans-serif;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  text-rendering: optimizeLegibility;
+}
+h1 { font-weight: 800; }
+h2 { font-weight: 700; }
+h3 { font-weight: 700; }
+h4 { font-weight: 600; }
+@media (min-width: 1024px) { h1 { letter-spacing: -0.02em; } h2 { letter-spacing: -0.015em; } }
+
+section { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+@media (min-width: 768px) { section { padding-top: 6rem; padding-bottom: 6rem; } }
+.section-heading { margin-bottom: 1rem; line-height: 1.06; }
+
+p { margin-bottom: 1rem; color: #475569; }
+
+.glass { padding: 1.25rem; }
+@media (min-width: 768px) { .glass { padding: 2.5rem; } }
