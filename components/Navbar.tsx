@@ -18,20 +18,20 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'py-4 glass' : 'py-6 bg-transparent'
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 overflow-hidden ${
+      isScrolled ? 'h-12 glass' : 'h-20 bg-transparent'
     }`}>
-      <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center">
+      <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center h-full">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center space-x-2"
         >
-          <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+          <div className={`rounded-lg overflow-hidden bg-transparent flex items-center justify-center transition-all duration-300 ${isScrolled ? 'w-12 h-12 sm:w-12 sm:h-12' : 'w-20 h-20 sm:w-16 sm:h-16'}`}>
             <img
               src={logoPngUrl}
               alt="2D Software"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain transform transition-transform duration-200 hover:scale-110"
               loading="eager"
               decoding="async"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoSvgUrl; }}

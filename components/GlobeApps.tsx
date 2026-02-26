@@ -157,6 +157,46 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
     }
   }, [curves.length]);
 
+  // Ensure sprites become visible as soon as their refs are attached.
+  // Some sprite refs are null during first render; poll for a short while using rAF.
+  useEffect(() => {
+    let rafId: number | null = null;
+    let attempts = 0;
+    const maxAttempts = 120; // try for ~2s at 60fps
+
+    function initLoop() {
+      let pending = false;
+      for (let ci = 0; ci < curves.length; ci++) {
+        const curve = curves[ci];
+        for (let k = 0; k < perCurve; k++) {
+          const idx = ci * perCurve + k;
+          const spr = glowRefs.current[idx];
+          if (!spr) { pending = true; continue; }
+          // mark-initialized to avoid re-initializing
+          if ((spr as any).__inited) continue;
+          try {
+            const u = glowStates.current[idx] ?? Math.random();
+            if (curve && typeof (curve as any).getPointAt === 'function') {
+              const p = (curve as any).getPointAt(u);
+              spr.position.set(p.x, p.y, p.z);
+              spr.visible = true;
+              spr.scale.set(0.03, 0.03, 1);
+              (spr as any).__inited = true;
+            }
+          } catch (e) { /* ignore init errors */ }
+        }
+      }
+
+      attempts++;
+      if (pending && attempts < maxAttempts) {
+        rafId = requestAnimationFrame(initLoop);
+      }
+    }
+
+    initLoop();
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
+  }, [curves.length]);
+
   useFrame((state, delta) => {
     const cam = state.camera;
     for (let ci = 0; ci < curves.length; ci++) {
@@ -794,8 +834,8 @@ const GlobeApps: React.FC = () => {
   }, []);
 
   return (
-    <div id="ecossistema" ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'auto', userSelect: 'none' }}>
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ background: '#071b39', position: 'relative', zIndex: 5, width: '100%', height: '100%', transform: `translateY(calc(-${TOP_EXTEND}px + 2cm))`, touchAction: 'none' }}>
+    <div id="ecossistema" ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
+      <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ background: '#071b39', position: 'relative', zIndex: 5, width: '100%', height: '100%', transform: `translateY(calc(-${TOP_EXTEND}px + 2cm))`, touchAction: 'pan-y' }}>
         <hemisphereLight skyColor={0x202033} groundColor={0x08060a} intensity={0.25} />
         <ambientLight intensity={0.3} />
         <directionalLight position={[10, 10, 10]} intensity={0.6} />
