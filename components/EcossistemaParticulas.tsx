@@ -59,7 +59,7 @@ const EcossistemaParticulas: React.FC = () => {
       }
     } catch (e) { /* ignore */ }
 
-    const smallCount = Math.round((w * h) / 12000); // increased density for more particles moving around
+    const smallCount = Math.round((w * h) / 9000); // increased density for more particles moving around
     for (let i = 0; i < smallCount; i++) {
       particles.push({
         x: Math.random() * w,
@@ -332,7 +332,7 @@ const EcossistemaParticulas: React.FC = () => {
           if (d < maxLink * maxLink) {
             const dist = Math.sqrt(d);
             const alpha = clamp(1 - dist / maxLink, 0, 1) * 0.55;
-            ctx.strokeStyle = `rgba(140, 180, 255, ${alpha})`;
+            ctx.strokeStyle = `rgba(255,255,255, ${alpha})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
@@ -350,7 +350,7 @@ const EcossistemaParticulas: React.FC = () => {
           if (d2 < 220 * 220) {
             const dist = Math.sqrt(d2);
             const a = clamp(1 - dist / 220, 0, 0.85) * 0.4;
-            ctx.strokeStyle = `rgba(96,165,250,${a})`;
+            ctx.strokeStyle = `rgba(255,255,255,${a})`;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(n.x, n.y);
@@ -361,7 +361,7 @@ const EcossistemaParticulas: React.FC = () => {
 
       // draw particles
       for (let p of particles) {
-        ctx.fillStyle = '#c7e2ff';
+        ctx.fillStyle = '#ffffff';
         ctx.globalAlpha = 0.9;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);

@@ -24,12 +24,12 @@ const GLOBE_RADIUS_DEFAULT = 2.4; // default globe radius
 const TOP_EXTEND_DEFAULT = 48;
 const BOTTOM_EXTEND_DEFAULT = 28;
 
-// StarsBackground: realistic starfield with variable brightness and subtle twinkle
-const StarsBackground: React.FC = () => {
+  // StarsBackground: realistic starfield with variable brightness and subtle twinkle
+  const StarsBackground: React.FC = () => {
   const ref = useRef<THREE.Group | null>(null);
   const matRef = useRef<THREE.PointsMaterial | null>(null);
-  // lowered star count for better performance on deploy
-  const count = 300;
+  // increase star count so small particles are more visible
+  const count = 600;
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -73,7 +73,7 @@ const StarsBackground: React.FC = () => {
           <bufferAttribute attach="attributes-position" array={positions} itemSize={3} count={positions.length / 3} />
           <bufferAttribute attachObject={["attributes", "color"]} array={colors} itemSize={3} count={colors.length / 3} />
         </bufferGeometry>
-        <pointsMaterial ref={matRef as any} vertexColors size={0.9} sizeAttenuation color={0xffffff} transparent opacity={0.9} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <pointsMaterial ref={matRef as any} vertexColors size={1.2} sizeAttenuation color={0xffffff} transparent opacity={0.95} depthWrite={false} blending={THREE.AdditiveBlending} />
       </points>
     </group>
   );
@@ -119,8 +119,8 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
     return base.concat(extra);
   }, [edges, positions, radius]);
 
-  // multiple moving star sprites per curve for density (reduced for performance)
-  const perCurve = 4; // number of moving stars per curve
+  // multiple moving star sprites per curve for density (increased slightly)
+  const perCurve = 6; // number of moving stars per curve
   const totalSprites = curves.length * perCurve;
   const glowRefs = useRef<Array<THREE.Sprite | null>>([]);
   const glowStates = useRef<number[]>([]);
@@ -176,26 +176,36 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
         const pulse = 0.03 + Math.abs(Math.sin(state.clock.elapsedTime * 12 + idx)) * 0.045;
         spr.scale.set(pulse, pulse, 1);
 
-        // occlusion: hide if globe intersects ray before sprite
+        // occlusion + hemisphere test: hide sprite when it's on globe's far side or when
+        // the globe intersects the ray from camera to sprite before the sprite point.
         try {
           const origin = cam.position.clone();
-          const dir = worldPos.clone().sub(origin).normalize();
-          const oc = origin.clone();
-          const r = radius - 0.02;
-          const a = dir.dot(dir);
-          const b = 2 * dir.dot(oc);
-          const c = oc.dot(oc) - r * r;
-          const disc = b * b - 4 * a * c;
+          const worldNorm = worldPos.clone().normalize();
+          const camDir = origin.clone().normalize();
           let blocked = false;
-          if (disc > 0) {
-            const sqrtD = Math.sqrt(disc);
-            const t1 = (-b - sqrtD) / (2 * a);
-            const t2 = (-b + sqrtD) / (2 * a);
-            const distToSprite = origin.distanceTo(worldPos);
-            const eps = 0.18;
-            const tIntersect = t1 > 0 ? t1 : (t2 > 0 ? t2 : null);
-            if (tIntersect !== null && tIntersect < distToSprite - eps) blocked = true;
+          // hemisphere check: if dot < 0 it's roughly on opposite hemisphere
+          const faceDot = camDir.dot(worldNorm);
+          if (faceDot < 0.05) blocked = true;
+
+          if (!blocked) {
+            const dir = worldPos.clone().sub(origin).normalize();
+            const oc = origin.clone();
+            const r = radius - 0.02;
+            const a = dir.dot(dir);
+            const b = 2 * dir.dot(oc);
+            const c = oc.dot(oc) - r * r;
+            const disc = b * b - 4 * a * c;
+            if (disc > 0) {
+              const sqrtD = Math.sqrt(disc);
+              const t1 = (-b - sqrtD) / (2 * a);
+              const t2 = (-b + sqrtD) / (2 * a);
+              const distToSprite = origin.distanceTo(worldPos);
+              const eps = 0.18;
+              const tIntersect = t1 > 0 ? t1 : (t2 > 0 ? t2 : null);
+              if (tIntersect !== null && tIntersect < distToSprite - eps) blocked = true;
+            }
           }
+
           spr.visible = !blocked;
         } catch (e) {
           spr.visible = true;
@@ -213,7 +223,7 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
         <group key={i}>
           <mesh>
             <tubeGeometry args={[curve, tubeSegments, 0.02, 6, false]} />
-            <meshBasicMaterial color={'#3ee6ff'} transparent opacity={0.14} blending={THREE.AdditiveBlending} depthWrite={false} />
+            <meshBasicMaterial color={'#ffffff'} transparent opacity={0.14} blending={THREE.AdditiveBlending} depthWrite={false} />
           </mesh>
           {Array.from({ length: perCurve }).map((_, k) => {
             const idx = i * perCurve + k;
@@ -305,10 +315,10 @@ function makeGlowTexture(size = 256) {
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
   const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-  grad.addColorStop(0, 'rgba(34,211,238,0.9)');
-  grad.addColorStop(0.25, 'rgba(34,211,238,0.6)');
-  grad.addColorStop(0.6, 'rgba(34,211,238,0.12)');
-  grad.addColorStop(1, 'rgba(34,211,238,0)');
+  grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+  grad.addColorStop(0.25, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,size,size);
   const tex = new THREE.CanvasTexture(canvas);
@@ -363,7 +373,7 @@ function makeStarTexture(size = 128) {
   return tex;
 }
 
-const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject<THREE.Group>; globeRadius: number }> = ({ positions, parentRef, globeRadius }) => {
+const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject<THREE.Group>; globeRadius: number; onHover?: (idx: number | null, client?: { x: number; y: number } | null) => void }> = ({ positions, parentRef, globeRadius, onHover }) => {
   // placeholder generator for products without images
   const makePlaceholderDataUrl = (label?: string, size = 256) => {
     const c = document.createElement('canvas');
@@ -440,12 +450,15 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
         // small per-image adjustment to center the 'cardapio' logo better
         const srcIndex = textures.indexOf(t as any);
         const isCardapio = srcs[srcIndex] === IMAGE_MAP.cardapio;
-        const adjScale = isCardapio ? scale * 1.05 : scale;
+        const isDelivery = srcs[srcIndex] === IMAGE_MAP.delivery;
+        // reduce zoom for cardapio and delivery so contents fit better (zoom out)
+        // cardapio: more zoomed out to show text; delivery: slightly zoomed out to show hamburger
+        const adjScale = isCardapio ? scale * 0.45 : isDelivery ? scale * 0.85 : scale;
         const dw = iw * adjScale;
         const dh = ih * adjScale;
-        // shift up slightly for cardapio so the top text is visible inside circle
+        // small vertical adjustments to better frame contents
         const dx = (size - dw) / 2;
-        const dy = (size - dh) / 2 + (isCardapio ? -size * 0.08 : 0);
+        const dy = (size - dh) / 2 + (isCardapio ? -size * 0.03 : isDelivery ? -size * 0.03 : 0);
         try { ctx.drawImage(img, 0, 0, iw, ih, dx, dy, dw, dh); } catch(e) { /* ignore draw errors */ }
         ctx.restore();
         // draw circular border (dark bubble outline)
@@ -476,6 +489,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
   const spriteRefs = useRef<Array<THREE.Sprite | null>>([]);
   const glowRefs = useRef<Array<THREE.Sprite | null>>([]);
   const ghostRefs = useRef<Array<THREE.Sprite | null>>([]);
+  const blockedRef = useRef<boolean[]>([]);
   const hovered = useRef<number | null>(null);
 
   useFrame((state, delta) => {
@@ -497,8 +511,11 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
       const max = 14;
       const t = Math.min(1, Math.max(0, (dist - min) / (max - min)));
       const baseScale = 1.2 * (1 - t) + 0.75 * t; // slightly smaller, more proportional to globe
-      const hoverBoost = hovered.current === i ? 1.25 : 1;
-      spr.scale.set(baseScale * hoverBoost, baseScale * hoverBoost, 1);
+      const isMobile = (typeof window !== 'undefined' && window.innerWidth < 640);
+      const mobileFactor = isMobile ? 0.65 : 1; // reduce bubble size on mobile
+      const isHovered = hovered.current === i && !blockedRef.current[i];
+      const hoverBoost = isHovered ? 1.35 : 1; // subtler 3D zoom when hovered
+      spr.scale.set(baseScale * mobileFactor * hoverBoost, baseScale * mobileFactor * hoverBoost, 1);
       // opacity varies with distance
       const mat = spr.material as THREE.SpriteMaterial;
       if (mat) mat.opacity = 0.9 * (1 - t * 0.35);
@@ -506,11 +523,23 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
       (spr as any).renderOrder = Math.round(3000 - dist * 10);
 
       if (glow) {
-        glow.scale.set(baseScale * 1.8 * hoverBoost, baseScale * 1.8 * hoverBoost, 1);
+        glow.scale.set(baseScale * mobileFactor * 1.8 * hoverBoost, baseScale * mobileFactor * 1.8 * hoverBoost, 1);
         const gmat = glow.material as THREE.SpriteMaterial;
         if (gmat) gmat.opacity = 0.6 * (1 - t * 0.6) * (hovered.current === i ? 1.2 : 1);
         (glow as any).renderOrder = Math.round(2000 - dist * 10);
       }
+
+      // 3D pop: move sprite forward along local z when hovered to create depth
+      try {
+        const targetZ = isHovered ? Math.max(0.06, globeRadius * 0.03) : 0;
+        // sprites are children of a group positioned on the sphere; animate local z
+        const curZ = spr.position.z || 0;
+        spr.position.z = curZ + (targetZ - curZ) * 0.18;
+        if (ghost) {
+          const gCurZ = ghost.position.z || 0;
+          ghost.position.z = gCurZ + ( (isHovered ? targetZ * 0.9 : 0) - gCurZ) * 0.18;
+        }
+      } catch (e) {}
 
         // occlusion test: robust ray-sphere intersection (quadratic) to determine if globe blocks sprite
       try {
@@ -535,6 +564,17 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
           if (tIntersect !== null && tIntersect < distToSprite - eps) blocked = true;
         }
 
+        // also consider hemisphere (back of globe) as blocked
+        try {
+          const camDir = cam.position.clone().normalize();
+          const pNorm = worldPos.clone().normalize();
+          const faceDot = camDir.dot(pNorm);
+          if (faceDot < 0.12) blocked = true;
+        } catch (e) {}
+
+        // store blocked state for use by handlers
+        try { blockedRef.current[i] = blocked; } catch (e) {}
+
         if (blocked) {
           if (spr.material) {
             (spr.material as THREE.SpriteMaterial).opacity = 0.0;
@@ -542,7 +582,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
           }
           if (ghost) {
             ghost.visible = true;
-            ghost.scale.set(baseScale * 0.9 * hoverBoost, baseScale * 0.9 * hoverBoost, 1);
+            ghost.scale.set(baseScale * mobileFactor * 0.9 * hoverBoost, baseScale * mobileFactor * 0.9 * hoverBoost, 1);
             const gmat = ghost.material as THREE.SpriteMaterial;
             if (gmat) { gmat.opacity = 0.36; gmat.color.set('#2a2d31'); }
             (ghost as any).renderOrder = Math.round(1500 - dist * 10);
@@ -569,8 +609,11 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
           {/* glow behind */}
           <sprite
             ref={(r) => (glowRefs.current[i] = r)}
-            onPointerOver={(e) => { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; }}
-            onPointerOut={(e) => { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; }}
+            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerOut={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
+            onPointerCancel={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
+            onPointerMove={(e) => { if (!blockedRef.current[i]) { onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
             scale={[2.1, 2.1, 1]}
           >
             <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={false} opacity={0.65} />
@@ -587,10 +630,13 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
 
           <sprite
             ref={(r) => (spriteRefs.current[i] = r)}
-            onClick={() => { const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); }}
-            onPointerUp={() => { /* ensure pointer gesture opens in some browsers */ const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); }}
-            onPointerOver={(e) => { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; }}
-            onPointerOut={(e) => { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; }}
+            onClick={() => { if (blockedRef.current[i]) return; const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); hovered.current = null; onHover && onHover(null, null); }}
+            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerUp={(e) => { if (blockedRef.current[i]) return; /* ensure pointer gesture opens in some browsers */ const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); hovered.current = null; onHover && onHover(null, null); }}
+            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerOut={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
+            onPointerCancel={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
+            onPointerMove={(e) => { if (!blockedRef.current[i]) { onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
             scale={[0.9, 0.9, 1]}
           >
             <spriteMaterial map={processedTextures[i] || textures[i]} transparent depthWrite={false} depthTest={true} alphaTest={0.01} />
@@ -719,6 +765,8 @@ const GlobeApps: React.FC = () => {
   };
 
   const containerHeight = baseHeight + TOP_EXTEND + BOTTOM_EXTEND;
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <div ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'none', userSelect: 'none' }}>
@@ -747,7 +795,7 @@ const GlobeApps: React.FC = () => {
               <meshBasicMaterial color={'#6d28d9'} wireframe opacity={0.06} transparent />
             </mesh>
 
-          <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} />
+          <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
 
           {/* debug fallback removed for final visuals */}
         </group>
@@ -756,6 +804,12 @@ const GlobeApps: React.FC = () => {
       <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-900" style={{ position: 'absolute', top: 'calc(-84px + 1cm)', left: '50%', transform: 'translateX(-50%)', color: undefined, textShadow: '0 4px 12px rgba(255,255,255,0.6)', zIndex: 50, pointerEvents: 'none' }}>
         Gire o globo e veja nossos apps
       </h2>
+      {/* tooltip overlay for hovered sprites */}
+      {hoveredIdx !== null && hoverPos && PRODUCTS[hoveredIdx] && (
+        <div style={{ position: 'absolute', left: hoverPos.x + 12, top: hoverPos.y + 12, pointerEvents: 'none', zIndex: 60 }}>
+          <div className="bg-slate-900 text-white text-sm px-3 py-1 rounded-md shadow-lg">{PRODUCTS[hoveredIdx].title}</div>
+        </div>
+      )}
     </div>
   );
 };
