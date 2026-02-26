@@ -79,6 +79,8 @@ const BOTTOM_EXTEND_DEFAULT = 28;
   );
 };
 
+
+
 // Connections: draw continuous tubes between app positions and animate a small glow moving along each curve
 const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = ({ positions, radius = GLOBE_RADIUS_DEFAULT }) => {
   // build edges: connect each app to every other (complete graph) for dense mesh
@@ -733,6 +735,21 @@ const GlobeApps: React.FC = () => {
 
   const positions = useMemo(() => fibonacciSphere(PRODUCTS.length, globeRadius), [globeRadius]);
 
+  // Preload product images/textures to speed up sprite initialization
+  useEffect(() => {
+    try {
+      const urls: string[] = [];
+      // local IMAGE_MAP entries referenced in Sprites
+      // collect product images (some entries may be data URLs already)
+      PRODUCTS.forEach((p: any) => {
+        if (p.id && p.image) urls.push(p.image);
+      });
+      // also preload known local images from IMAGE_MAP above by constructing their URLs
+      // safe-guard: try to import known assets via relative path usage not available here, so preload all image urls found in DOM if any
+      urls.forEach((u) => { try { const i = new Image(); i.src = u; } catch(e) {} });
+    } catch (e) {}
+  }, []);
+
   
 
   // Auto-rotate when not dragging: implement inside Canvas via a small helper component
@@ -764,22 +781,21 @@ const GlobeApps: React.FC = () => {
     const dragRefLocal = dragRef.current;
 
     function onDown(e: PointerEvent) {
-      // only start drag when pointerdown originated on the actual canvas
-      if ((e.target as HTMLElement) !== canvas && !(canvas && canvas.contains(e.target as Node))) return;
-      // if pointer is on canvas but outside the globe circular area, allow native scroll
+      // start drag only when pointerdown is within the canvas bounding rect (allow wrapper to receive events)
+      if (!canvas) return;
       try {
-        if (canvas) {
-          const r = canvas.getBoundingClientRect();
-          const cx = r.left + r.width / 2;
-          const cy = r.top + r.height / 2;
-          const dx = e.clientX - cx;
-          const dy = e.clientY - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const threshold = Math.min(r.width, r.height) * 0.45; // 45% radius threshold
-          if (dist > threshold) return; // outside globe touch zone -> allow page scroll
-        }
+        const r = canvas.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        // threshold: percentage of half the smaller side that we consider "on-globe"
+        // increase to capture more of the visible globe on phones
+        const threshold = Math.min(r.width, r.height) * 0.78; // ~78% radius threshold
+        if (dist > threshold) return; // outside globe touch zone -> allow page scroll
       } catch (err) {
-        // fallback: continue
+        return;
       }
       dragRefLocal.down = true;
       dragRefLocal.lastX = e.clientX;
@@ -794,8 +810,8 @@ const GlobeApps: React.FC = () => {
       const dy = e.clientY - (dragRefLocal.lastY || 0);
       dragRefLocal.lastX = e.clientX;
       dragRefLocal.lastY = e.clientY;
-      // reduce sensitivity on touch devices to avoid accidental large rotations
-      const sensitivity = dragRefLocal.isTouch ? 0.0035 : 0.01;
+      // increase sensitivity on touch so mobile swipes rotate the globe responsively
+      const sensitivity = dragRefLocal.isTouch ? 0.018 : 0.01;
       vx = dx * sensitivity;
       vy = dy * sensitivity;
       const g = groupRef.current;
@@ -823,11 +839,13 @@ const GlobeApps: React.FC = () => {
     }
 
     if (canvas) canvas.addEventListener('pointerdown', onDown);
+    if (el) el.addEventListener('pointerdown', onDown);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
 
     return () => {
       if (canvas) canvas.removeEventListener('pointerdown', onDown);
+      if (el) el.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -850,7 +868,21 @@ const GlobeApps: React.FC = () => {
           <Connections positions={positions} radius={globeRadius} />
 
           {/* Dark globe body */}
-          <mesh>
+          <mesh
+            onPointerDown={(e: any) => {
+              try { e.stopPropagation(); } catch {}
+              dragRef.current.down = true;
+              dragRef.current.lastX = (e.clientX ?? e.nativeEvent?.clientX) || 0;
+              dragRef.current.lastY = (e.clientY ?? e.nativeEvent?.clientY) || 0;
+              dragRef.current.isTouch = e.pointerType === 'touch' || (e.nativeEvent && e.nativeEvent.pointerType === 'touch');
+              try { (e.target as Element).setPointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
+            }}
+            onPointerUp={(e: any) => {
+              try { e.stopPropagation(); } catch {}
+              try { (e.target as Element).releasePointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
+              dragRef.current.down = false;
+            }}
+          >
             <sphereGeometry args={[globeRadius, 64, 64]} />
             <meshStandardMaterial color={'#06060a'} metalness={0.15} roughness={0.8} emissive={'#020214'} emissiveIntensity={0.05} />
           </mesh>

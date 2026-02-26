@@ -10,11 +10,22 @@ const logoSvgUrl = new URL('../logo/logo.svg', import.meta.url).href;
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoSrc, setLogoSrc] = useState<string>(logoPngUrl);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // preload logo and fallback to svg if png fails
+  useEffect(() => {
+    let mounted = true;
+    const img = new Image();
+    img.src = logoPngUrl;
+    img.onload = () => { if (mounted) setLogoSrc(logoPngUrl); };
+    img.onerror = () => { if (mounted) setLogoSrc(logoSvgUrl); };
+    return () => { mounted = false; };
   }, []);
 
   return (
@@ -29,7 +40,7 @@ const Navbar: React.FC = () => {
         >
           <div className={`rounded-lg overflow-hidden bg-transparent flex items-center justify-center transition-all duration-300 ${isScrolled ? 'w-12 h-12 sm:w-12 sm:h-12' : 'w-20 h-20 sm:w-16 sm:h-16'}`}>
             <img
-              src={logoPngUrl}
+              src={logoSrc}
               alt="2D Software"
               className="w-full h-full object-contain transform transition-transform duration-200 hover:scale-110"
               loading="eager"
@@ -37,7 +48,7 @@ const Navbar: React.FC = () => {
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = logoSvgUrl; }}
             />
           </div>
-          <span className="text-xl font-bold tracking-tighter text-slate-900">Software</span>
+          <span className="hidden sm:inline-block text-xl font-bold tracking-tighter text-slate-900">Software</span>
         </motion.div>
 
         <div className="hidden sm:flex items-center space-x-4 md:space-x-8">
