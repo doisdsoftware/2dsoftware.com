@@ -131,7 +131,30 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
     const newTotal = curves.length * perCurve;
     glowRefs.current = new Array(newTotal).fill(null);
     glowStates.current = new Array(newTotal).fill(0).map(() => Math.random());
+    // restore moderate speed; we'll position sprites immediately so they appear faster
     glowSpeeds.current = new Array(newTotal).fill(0).map(() => 0.18 + Math.random() * 0.6);
+
+    // Try to place sprites on their curves immediately so they are visible on mount
+    // (some Sprite refs may not yet be attached; guard accordingly)
+    for (let ci = 0; ci < curves.length; ci++) {
+      const curve = curves[ci];
+      for (let k = 0; k < perCurve; k++) {
+        const idx = ci * perCurve + k;
+        const spr = glowRefs.current[idx];
+        try {
+          const u = glowStates.current[idx] ?? Math.random();
+          if (spr && curve && typeof (curve as any).getPointAt === 'function') {
+            const p = (curve as any).getPointAt(u);
+            spr.position.set(p.x, p.y, p.z);
+            spr.visible = true;
+            // small initial scale so they don't pop too large
+            spr.scale.set(0.02, 0.02, 1);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
   }, [curves.length]);
 
   useFrame((state, delta) => {
@@ -703,6 +726,21 @@ const GlobeApps: React.FC = () => {
     function onDown(e: PointerEvent) {
       // only start drag when pointerdown originated on the actual canvas
       if ((e.target as HTMLElement) !== canvas && !(canvas && canvas.contains(e.target as Node))) return;
+      // if pointer is on canvas but outside the globe circular area, allow native scroll
+      try {
+        if (canvas) {
+          const r = canvas.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const dx = e.clientX - cx;
+          const dy = e.clientY - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const threshold = Math.min(r.width, r.height) * 0.45; // 45% radius threshold
+          if (dist > threshold) return; // outside globe touch zone -> allow page scroll
+        }
+      } catch (err) {
+        // fallback: continue
+      }
       dragRefLocal.down = true;
       dragRefLocal.lastX = e.clientX;
       dragRefLocal.lastY = e.clientY;

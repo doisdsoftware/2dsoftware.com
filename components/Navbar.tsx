@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center space-x-2"
         >
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+          <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
             <img
               src={logoPngUrl}
               alt="2D Software"
