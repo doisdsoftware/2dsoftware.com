@@ -670,86 +670,7 @@ const GlobeApps: React.FC = () => {
 
   const positions = useMemo(() => fibonacciSphere(PRODUCTS.length, globeRadius), [globeRadius]);
 
-  // Pointer handlers to rotate the group and inertia
-  useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    // mount debug log removed for production readiness
-    let lastX = 0;
-    let lastY = 0;
-    let vx = 0;
-    let vy = 0;
-
-    const pointerScale = viewportW < 640 ? 0.025 : 0.01;
-
-    function onDown(e: PointerEvent) {
-      // only start dragging if pointer is inside the canvas area
-      try {
-        const el = wrapperRef.current;
-        const canvas = el ? (el.querySelector('canvas') as HTMLCanvasElement | null) : null;
-        if (canvas) {
-          const r = canvas.getBoundingClientRect();
-          // only start drag when touching inside a centered circular zone over the globe
-          const cx = r.left + r.width / 2;
-          const cy = r.top + r.height / 2;
-          const dx = e.clientX - cx;
-          const dy = e.clientY - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          // radius threshold (45% of smaller canvas dimension)
-          const threshold = Math.min(r.width, r.height) * 0.45;
-          if (dist > threshold) return; // outside globe touch zone -> allow page scroll
-        }
-      } catch (err) {
-        // if any error, fall back to allowing drag
-      }
-      try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch {}
-      dragRef.current.down = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      // prevent native scrolling while dragging
-      try { e.preventDefault(); } catch {}
-    }
-    function onMove(e: PointerEvent) {
-      if (!dragRef.current.down) return;
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      vx = dx * pointerScale;
-      vy = dy * pointerScale;
-      const g = groupRef.current;
-      if (g) {
-        g.rotation.y += vx;
-        g.rotation.x += vy;
-      }
-      try { e.preventDefault(); } catch {}
-    }
-    function onUp(e: PointerEvent) {
-      try { (e.target as Element).releasePointerCapture?.(e.pointerId); } catch {}
-      dragRef.current.down = false;
-      // inertia
-      const g = groupRef.current;
-      if (g) {
-        const id = setInterval(() => {
-          vx *= 0.95;
-          vy *= 0.95;
-          g.rotation.y += vx;
-          g.rotation.x += vy;
-          if (Math.abs(vx) < 0.0005 && Math.abs(vy) < 0.0005) clearInterval(id);
-        }, 16);
-      }
-    }
-
-    el.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-
-    return () => {
-      el.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-    };
-  }, []);
+  
 
   // Auto-rotate when not dragging: implement inside Canvas via a small helper component
   const AutoRotate: React.FC = () => {
@@ -767,43 +688,116 @@ const GlobeApps: React.FC = () => {
   const containerHeight = baseHeight + TOP_EXTEND + BOTTOM_EXTEND;
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
+  // Improve mobile behavior: allow page scrolling when touching outside the canvas
+  // and make the canvas capture pointer events only when the pointer is over it.
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    // attach pointerdown only to the Canvas element so touches on the dark background
+    // keep their native scrolling behavior. Moves and up are tracked globally but only
+    // applied while dragging started on the canvas.
+    const canvas = el.querySelector('canvas');
+    let vx = 0; let vy = 0;
+    const dragRefLocal = dragRef.current;
+
+    function onDown(e: PointerEvent) {
+      // only start drag when pointerdown originated on the actual canvas
+      if ((e.target as HTMLElement) !== canvas && !(canvas && canvas.contains(e.target as Node))) return;
+      dragRefLocal.down = true;
+      dragRefLocal.lastX = e.clientX;
+      dragRefLocal.lastY = e.clientY;
+      dragRefLocal.isTouch = e.pointerType === 'touch';
+      try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch {}
+    }
+
+    function onMove(e: PointerEvent) {
+      if (!dragRefLocal.down) return;
+      const dx = e.clientX - (dragRefLocal.lastX || 0);
+      const dy = e.clientY - (dragRefLocal.lastY || 0);
+      dragRefLocal.lastX = e.clientX;
+      dragRefLocal.lastY = e.clientY;
+      // reduce sensitivity on touch devices to avoid accidental large rotations
+      const sensitivity = dragRefLocal.isTouch ? 0.0035 : 0.01;
+      vx = dx * sensitivity;
+      vy = dy * sensitivity;
+      const g = groupRef.current;
+      if (g) {
+        g.rotation.y += vx;
+        g.rotation.x += vy;
+      }
+      try { e.preventDefault(); } catch {}
+    }
+
+    function onUp(e: PointerEvent) {
+      try { (e.target as Element).releasePointerCapture?.(e.pointerId); } catch {}
+      dragRef.current.down = false;
+      // inertia
+      const g = groupRef.current;
+      if (g) {
+        const id = setInterval(() => {
+          vx *= 0.95;
+          vy *= 0.95;
+          g.rotation.y += vx;
+          g.rotation.x += vy;
+          if (Math.abs(vx) < 0.0005 && Math.abs(vy) < 0.0005) clearInterval(id);
+        }, 16);
+      }
+    }
+
+    if (canvas) canvas.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+
+    return () => {
+      if (canvas) canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, []);
 
   return (
-    <div ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'none', userSelect: 'none' }}>
+    <div id="ecossistema" ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'auto', userSelect: 'none' }}>
       <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ background: '#071b39', position: 'relative', zIndex: 5, width: '100%', height: '100%', transform: `translateY(calc(-${TOP_EXTEND}px + 2cm))`, touchAction: 'none' }}>
         <hemisphereLight skyColor={0x202033} groundColor={0x08060a} intensity={0.25} />
         <ambientLight intensity={0.3} />
         <directionalLight position={[10, 10, 10]} intensity={0.6} />
         <pointLight position={[-10, -10, -10]} intensity={0.2} />
 
-        {/* Stars background */}
+        {/* Stars background and auto-rotate helper */}
         <StarsBackground />
-
         <AutoRotate />
-        <group ref={groupRef}>
-            {/* connections particles (moved inside group so they rotate with the globe) */}
-            <Connections positions={positions} radius={globeRadius} />
-            {/* Dark globe body */}
-            <mesh>
-              <sphereGeometry args={[globeRadius, 64, 64]} />
-              <meshStandardMaterial color={'#06060a'} metalness={0.15} roughness={0.8} emissive={'#020214'} emissiveIntensity={0.05} />
-            </mesh>
 
-            {/* subtle wireframe overlay */}
-            <mesh>
-              <sphereGeometry args={[globeRadius + 0.03, 32, 32]} />
-              <meshBasicMaterial color={'#6d28d9'} wireframe opacity={0.06} transparent />
-            </mesh>
+        <group ref={groupRef}>
+          {/* connections particles (moved inside group so they rotate with the globe) */}
+          <Connections positions={positions} radius={globeRadius} />
+
+          {/* Dark globe body */}
+          <mesh>
+            <sphereGeometry args={[globeRadius, 64, 64]} />
+            <meshStandardMaterial color={'#06060a'} metalness={0.15} roughness={0.8} emissive={'#020214'} emissiveIntensity={0.05} />
+          </mesh>
+
+          {/* subtle wireframe overlay */}
+          <mesh>
+            <sphereGeometry args={[globeRadius + 0.03, 32, 32]} />
+            <meshBasicMaterial color={'#6d28d9'} wireframe opacity={0.06} transparent />
+          </mesh>
 
           <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
 
-          {/* debug fallback removed for final visuals */}
         </group>
       </Canvas>
-      {/* title overlay above the particle/canvas layer (matches site headings; does not block pointer events) */}
-      <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-900" style={{ position: 'absolute', top: 'calc(-84px + 1cm)', left: '50%', transform: 'translateX(-50%)', color: undefined, textShadow: '0 4px 12px rgba(255,255,255,0.6)', zIndex: 50, pointerEvents: 'none' }}>
-        Gire o globo e veja nossos apps
-      </h2>
+
+      {/* title: desktop uses original dark heading; mobile shows single-line variation */}
+      {viewportW < 640 ? (
+        <h2 className="font-bold text-center text-slate-900" style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', textShadow: '0 4px 12px rgba(0,0,0,0.45)', zIndex: 80, pointerEvents: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '90%', fontSize: '20px', lineHeight: '1' }}>
+          Gire o globo e veja nossos apps
+        </h2>
+      ) : (
+        <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-900" style={{ position: 'absolute', top: 'calc(-84px + 1cm)', left: '50%', transform: 'translateX(-50%)', textShadow: '0 4px 12px rgba(255,255,255,0.6)', zIndex: 50, pointerEvents: 'none' }}>
+          Gire o globo e veja nossos apps
+        </h2>
+      )}
       {/* tooltip overlay for hovered sprites */}
       {hoveredIdx !== null && hoverPos && PRODUCTS[hoveredIdx] && (
         <div style={{ position: 'absolute', left: hoverPos.x + 12, top: hoverPos.y + 12, pointerEvents: 'none', zIndex: 60 }}>

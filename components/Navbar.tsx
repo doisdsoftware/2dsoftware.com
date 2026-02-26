@@ -45,6 +45,15 @@ const Navbar: React.FC = () => {
             <motion.a
               key={item.label}
               href={item.href}
+              onClick={(e) => {
+                try {
+                  if (item.href && item.href.startsWith('#')) {
+                    e.preventDefault();
+                    const el = document.querySelector(item.href);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                } catch (err) {}
+              }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
@@ -86,7 +95,16 @@ const Navbar: React.FC = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    try {
+                      if (item.href && item.href.startsWith('#')) {
+                        e.preventDefault();
+                        const el = document.querySelector(item.href);
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    } catch (err) {}
+                    setMobileMenuOpen(false);
+                  }}
                   className="text-base sm:text-lg font-semibold text-slate-700"
                 >
                   {item.label}

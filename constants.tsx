@@ -15,7 +15,7 @@ import { NavItem, Product, Feature } from './types';
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Sobre', href: '#sobre' },
-  { label: 'Partículas', href: '#ecossistema' },
+  { label: 'Globo', href: '#ecossistema' },
   { label: 'Produtos', href: '#produtos' },
   { label: 'Sites', href: '#sites' },
   { label: 'Vantagens', href: '#vantagens' },

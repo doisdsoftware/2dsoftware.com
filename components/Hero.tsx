@@ -88,7 +88,7 @@ const Hero: React.FC = () => {
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 md:mb-8 text-slate-900">
             <span>Software </span>
-            <span className="text-gradient">de Alto Impacto</span>
+            <span className="text-gradient">de alto impacto</span>
           </h1>
           
           <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 mb-8 md:mb-12 max-w-2xl leading-relaxed font-medium">

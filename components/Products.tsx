@@ -12,7 +12,7 @@ const Products: React.FC = () => {
       <div className="container mx-auto">
         <div className="flex flex-col items-center mb-8 text-center" style={{ marginTop: '3cm', position: 'relative', zIndex: 60 }}>
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">Soluções e Funcionalidades</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">Soluções e funcionalidades</h2>
           </div>
         </div>
 

@@ -15,8 +15,8 @@ const Footer: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">
-              Pronto para o <br /><span className="text-gradient">próximo nível?</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-left mb-6">
+              Pronto para o <span className="text-gradient">próximo nível?</span>
             </h2>
             <div className="flex flex-col sm:flex-row gap-5">
               <a 

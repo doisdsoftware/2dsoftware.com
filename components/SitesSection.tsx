@@ -8,12 +8,12 @@ function TechBadge({ children }: { children: React.ReactNode }) {
 
 export default function SitesSection() {
   return (
-    <section className="relative py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-blue-50 via-white to-white">
+    <section id="sites" className="relative py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-blue-50 via-white to-white">
       <div className="max-w-6xl mx-auto text-center mb-8 sm:mb-16">
         <span className="text-teal-500 font-medium tracking-wide text-xs sm:text-base">Produtos & Serviços</span>
 
         <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">
-          Sites Profissionais
+          Sites profissionais
           <br />
           <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">claros, rápidos e fáceis de manter</span>
         </h2>
@@ -24,22 +24,22 @@ export default function SitesSection() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 flex flex-col gap-6">
           <article className="p-6 rounded-2xl bg-white/90 shadow-md hover:shadow-blue-200 transition duration-300 hover:-translate-y-1">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Landing Pages de Alta Conversão</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Landing pages de alta conversão</h3>
             <p className="text-slate-600 text-sm">Foco em mensagens claras, testes A/B e carregamento instantâneo.</p>
           </article>
 
           <article className="p-6 rounded-2xl bg-white/90 shadow-md hover:shadow-blue-200 transition duration-300 hover:-translate-y-1">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Sites Institucionais e Portfólios</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Sites institucionais e portfólios</h3>
             <p className="text-slate-600 text-sm">Identidade visual, SEO técnico e edições fáceis.</p>
           </article>
 
           <article className="p-6 rounded-2xl bg-white/90 shadow-md hover:shadow-blue-200 transition duration-300 hover:-translate-y-1">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">E-commerce e Integrações</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">E-commerce e integrações</h3>
             <p className="text-slate-600 text-sm">Checkout rápido, integrações e monitoramento de vendas.</p>
           </article>
 
           <article className="p-6 rounded-2xl bg-white/90 shadow-md hover:shadow-blue-200 transition duration-300 hover:-translate-y-1">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Manutenção & Suporte</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Manutenção & suporte</h3>
             <p className="text-slate-600 text-sm">Código organizado, deploys previsíveis e suporte contínuo.</p>
           </article>
         </div>

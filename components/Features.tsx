@@ -10,7 +10,7 @@ const Features: React.FC = () => {
     <section id="vantagens" className="py-24 px-6 bg-blue-50/30">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">Excelência em Cada Detalhe</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 text-center mb-6">Excelência em cada detalhe</h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-lg font-medium">
             Combinamos o rigor da engenharia com a criatividade do design.
           </p>
