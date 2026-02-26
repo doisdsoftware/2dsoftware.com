@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+// enable three.js cache so preloaded textures are reused by TextureLoader / useLoader
+(THREE as any).Cache.enabled = true;
 import { PRODUCTS } from '../constants';
 
 // Import local logos from `logo/` folder
@@ -438,7 +440,7 @@ function makeStarTexture(size = 128) {
   return tex;
 }
 
-const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject<THREE.Group>; globeRadius: number; onHover?: (idx: number | null, client?: { x: number; y: number } | null) => void }> = ({ positions, parentRef, globeRadius, onHover }) => {
+const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject<THREE.Group>; globeRadius: number; preloadedTextures?: THREE.Texture[] | null; onHover?: (idx: number | null, client?: { x: number; y: number } | null) => void }> = ({ positions, parentRef, globeRadius, preloadedTextures, onHover }) => {
   // placeholder generator for products without images
   const makePlaceholderDataUrl = (label?: string, size = 256) => {
     const c = document.createElement('canvas');
@@ -472,7 +474,8 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
   useEffect(() => {
     try {
       const maxAniso = (gl.capabilities && (gl.capabilities as any).getMaxAnisotropy) ? (gl.capabilities as any).getMaxAnisotropy() : (gl.getMaxAnisotropy ? gl.getMaxAnisotropy() : 1);
-      textures.forEach((t) => {
+      const arr = (activeTextures as any) || textures;
+      arr.forEach((t: any) => {
         if (!t) return;
         if ('colorSpace' in t) {
           try { (t as any).colorSpace = (THREE as any).SRGBColorSpace || (THREE as any).sRGBEncoding; } catch (e) { (t as any).encoding = (THREE as any).sRGBEncoding || THREE.LinearEncoding; }
@@ -489,12 +492,18 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
     } catch (e) {
       // ignore
     }
-  }, [textures, gl, glowTex]);
+  }, [textures, gl, glowTex, preloadedTextures]);
+
+    // If an external preloaded textures array was attached to the textures via THREE.Cache,
+    // prefer those when present. (Three Cache is enabled globally.)
+
+  // prefer preloaded textures when passed from parent (faster visibility)
+  const activeTextures = preloadedTextures && preloadedTextures.length === srcs.length ? preloadedTextures : textures;
 
   // create circular (bubble) masked textures from loaded images for crisper bubble look
   const processedTextures = useMemo(() => {
     try {
-      return textures.map((t) => {
+      return (activeTextures as any).map((t: THREE.Texture) => {
         if (!t || !(t as any).image) return t;
         const img: HTMLImageElement = (t as any).image as HTMLImageElement;
         const size = 256;
@@ -549,7 +558,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
     } catch (e) {
       return textures;
     }
-  }, [textures, gl]);
+  }, [textures, gl, activeTextures]);
 
   const spriteRefs = useRef<Array<THREE.Sprite | null>>([]);
   const glowRefs = useRef<Array<THREE.Sprite | null>>([]);
@@ -690,7 +699,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
             visible={false}
             scale={[1.0, 1.0, 1]}
           >
-            <spriteMaterial map={processedTextures[i] || textures[i]} transparent depthWrite={false} depthTest={false} opacity={0.36} color={'#2a2d31'} />
+            <spriteMaterial map={(processedTextures as any)[i] || (activeTextures as any)[i]} transparent depthWrite={false} depthTest={false} opacity={0.36} color={'#2a2d31'} />
           </sprite>
 
           <sprite
@@ -704,7 +713,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
             onPointerMove={(e) => { if (!blockedRef.current[i]) { onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
             scale={[0.9, 0.9, 1]}
           >
-            <spriteMaterial map={processedTextures[i] || textures[i]} transparent depthWrite={false} depthTest={true} alphaTest={0.01} />
+            <spriteMaterial map={(processedTextures as any)[i] || (activeTextures as any)[i]} transparent depthWrite={false} depthTest={true} alphaTest={0.01} />
           </sprite>
         </group>
       ))}
@@ -715,6 +724,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
 const GlobeApps: React.FC = () => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef({ down: false, x: 0, y: 0 });
+  const cameraRef = useRef<THREE.Camera | null>(null);
   const groupRef = useRef<THREE.Group | null>(null);
 
   // responsive viewport tracking
@@ -735,18 +745,34 @@ const GlobeApps: React.FC = () => {
 
   const positions = useMemo(() => fibonacciSphere(PRODUCTS.length, globeRadius), [globeRadius]);
 
-  // Preload product images/textures to speed up sprite initialization
+  // Preloaded THREE.Textures to speed sprite visibility
+  const [preloadedTextures, setPreloadedTextures] = useState<THREE.Texture[] | null>(null);
+
+  // Preload product images/textures to speed up sprite initialization and create THREE.Textures
   useEffect(() => {
     try {
       const urls: string[] = [];
-      // local IMAGE_MAP entries referenced in Sprites
-      // collect product images (some entries may be data URLs already)
-      PRODUCTS.forEach((p: any) => {
-        if (p.id && p.image) urls.push(p.image);
+      PRODUCTS.forEach((p: any) => { if (p.id && p.image) urls.push(p.image); });
+      try { Object.values(IMAGE_MAP).forEach((v) => urls.push(v)); } catch (e) {}
+      const texLoader = new THREE.TextureLoader();
+      const loaded: THREE.Texture[] = [];
+      let pending = urls.length;
+      if (pending === 0) { setPreloadedTextures([]); return; }
+      urls.forEach((u, idx) => {
+        try { const img = new Image(); img.src = u; } catch (e) {}
+        try {
+          texLoader.load(u, (tex) => {
+            try {
+              tex.generateMipmaps = true;
+              tex.minFilter = THREE.LinearMipmapLinearFilter;
+              tex.magFilter = THREE.LinearFilter;
+              tex.needsUpdate = true;
+            } catch (e) {}
+            loaded[idx] = tex;
+            pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length));
+          }, undefined, () => { pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length)); });
+        } catch (e) { pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length)); }
       });
-      // also preload known local images from IMAGE_MAP above by constructing their URLs
-      // safe-guard: try to import known assets via relative path usage not available here, so preload all image urls found in DOM if any
-      urls.forEach((u) => { try { const i = new Image(); i.src = u; } catch(e) {} });
     } catch (e) {}
   }, []);
 
@@ -762,6 +788,13 @@ const GlobeApps: React.FC = () => {
       g.rotation.y += 0.12 * delta;
       g.rotation.x += 0.01 * delta;
     });
+    return null;
+  };
+
+  // component to capture the Canvas camera instance
+  const SetCameraRef: React.FC = () => {
+    const { camera } = useThree();
+    useEffect(() => { cameraRef.current = camera; return () => { cameraRef.current = null; }; }, [camera]);
     return null;
   };
 
@@ -781,19 +814,47 @@ const GlobeApps: React.FC = () => {
     const dragRefLocal = dragRef.current;
 
     function onDown(e: PointerEvent) {
-      // start drag only when pointerdown is within the canvas bounding rect (allow wrapper to receive events)
       if (!canvas) return;
       try {
         const r = canvas.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const dx = e.clientX - cx;
-        const dy = e.clientY - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        // threshold: percentage of half the smaller side that we consider "on-globe"
-        // increase to capture more of the visible globe on phones
-        const threshold = Math.min(r.width, r.height) * 0.78; // ~78% radius threshold
-        if (dist > threshold) return; // outside globe touch zone -> allow page scroll
+        // If we have the three camera, compute a precise projected screen radius for the globe
+        if (cameraRef.current) {
+          const cam = cameraRef.current;
+          // project multiple sphere edge sample points to get a conservative pixel radius
+          const samples = [
+            new THREE.Vector3(globeRadius, 0, 0),
+            new THREE.Vector3(-globeRadius, 0, 0),
+            new THREE.Vector3(0, globeRadius, 0),
+            new THREE.Vector3(0, -globeRadius, 0),
+            new THREE.Vector3(0, 0, globeRadius),
+            new THREE.Vector3(0, 0, -globeRadius),
+          ];
+          const vCenter = new THREE.Vector3(0, 0, 0).project(cam);
+          const cx = r.left + (vCenter.x + 1) * 0.5 * r.width;
+          const cy = r.top + (-vCenter.y + 1) * 0.5 * r.height;
+          let maxDist = 0;
+          samples.forEach((s) => {
+            const p = s.clone().project(cam);
+            const px = r.left + (p.x + 1) * 0.5 * r.width;
+            const py = r.top + (-p.y + 1) * 0.5 * r.height;
+            const d = Math.hypot(px - cx, py - cy);
+            if (d > maxDist) maxDist = d;
+          });
+          const radiusPx = maxDist;
+          const dx = e.clientX - cx;
+          const dy = e.clientY - cy;
+          const dist = Math.hypot(dx, dy);
+          // add multiplier padding to be more forgiving on mobile fingers
+          if (dist > radiusPx * 1.25) return;
+        } else {
+          // fallback: use bounding-box threshold
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const dx = e.clientX - cx;
+          const dy = e.clientY - cy;
+          const dist = Math.hypot(dx, dy);
+          if (dist > Math.min(r.width, r.height) * 1.25) return;
+        }
       } catch (err) {
         return;
       }
@@ -854,6 +915,7 @@ const GlobeApps: React.FC = () => {
   return (
     <div id="ecossistema" ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
       <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ background: '#071b39', position: 'relative', zIndex: 5, width: '100%', height: '100%', transform: `translateY(calc(-${TOP_EXTEND}px + 2cm))`, touchAction: 'pan-y' }}>
+        <SetCameraRef />
         <hemisphereLight skyColor={0x202033} groundColor={0x08060a} intensity={0.25} />
         <ambientLight intensity={0.3} />
         <directionalLight position={[10, 10, 10]} intensity={0.6} />
@@ -893,7 +955,7 @@ const GlobeApps: React.FC = () => {
             <meshBasicMaterial color={'#6d28d9'} wireframe opacity={0.06} transparent />
           </mesh>
 
-          <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
+          <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} preloadedTextures={preloadedTextures} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
 
         </group>
       </Canvas>
