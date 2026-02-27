@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 overflow-hidden ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${mobileMenuOpen ? 'overflow-visible' : 'overflow-hidden'} ${
       isScrolled ? 'h-12 glass' : 'h-20 bg-transparent'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center h-full">
@@ -50,7 +50,6 @@ const Navbar: React.FC = () => {
           </div>
           <span className="hidden sm:inline-block text-xl font-bold tracking-tighter text-slate-900">Software</span>
         </motion.div>
-
         <div className="hidden sm:flex items-center space-x-4 md:space-x-8">
           {NAV_ITEMS.map((item, idx) => (
             <motion.a
@@ -67,7 +66,7 @@ const Navbar: React.FC = () => {
               }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
+              transition={{ delay: idx * 0.05 }}
               className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
             >
               {item.label}

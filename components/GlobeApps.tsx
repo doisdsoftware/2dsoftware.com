@@ -833,20 +833,24 @@ const GlobeApps: React.FC = () => {
 
     function onDown(e: PointerEvent) {
       if (!canvas) return;
+      // On touch, start drag for any pointer on the canvas to ensure full coverage (top/bottom included)
+      try {
+        if (e.pointerType === 'touch') {
+          dragRefLocal.down = true;
+          dragRefLocal.lastX = e.clientX;
+          dragRefLocal.lastY = e.clientY;
+          dragRefLocal.isTouch = true;
+          try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch {}
+          return;
+        }
+      } catch (err) {}
       try {
         const r = canvas.getBoundingClientRect();
         // If we have the three camera, compute a precise projected screen radius for the globe
         if (cameraRef.current) {
           const cam = cameraRef.current;
-          // project multiple sphere edge sample points to get a conservative pixel radius
-          const samples = [
-            new THREE.Vector3(globeRadius, 0, 0),
-            new THREE.Vector3(-globeRadius, 0, 0),
-            new THREE.Vector3(0, globeRadius, 0),
-            new THREE.Vector3(0, -globeRadius, 0),
-            new THREE.Vector3(0, 0, globeRadius),
-            new THREE.Vector3(0, 0, -globeRadius),
-          ];
+          // project many surface sample points (Fibonacci sphere) to get a conservative pixel radius
+          const samples = fibonacciSphere(64, globeRadius);
           const vCenter = new THREE.Vector3(0, 0, 0).project(cam);
           const cx = r.left + (vCenter.x + 1) * 0.5 * r.width;
           const cy = r.top + (-vCenter.y + 1) * 0.5 * r.height;
