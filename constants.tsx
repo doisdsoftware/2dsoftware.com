@@ -1,5 +1,7 @@
 
 import React from 'react';
+import imgCardapio from './logo/App cardapio.png';
+import imgFidelidade from './logo/Logo app fidelidade.png';
 import { 
   Smartphone, 
   Map as MapIcon, 
@@ -19,7 +21,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Produtos', href: '#produtos' },
   { label: 'Sites', href: '#sites' },
   { label: 'Vantagens', href: '#vantagens' },
-  { label: 'Tecnologia', href: '#tecnologia' },
 ];
 
 
@@ -31,6 +32,7 @@ export const PRODUCTS: Product[] = [
     description: 'Plataforma digital para retenção de clientes focada em pequenos e médios estabelecimentos locais.',
     icon: <CreditCard className="w-8 h-8 text-emerald-400" />,
     href: 'https://appfidelidade-production.up.railway.app/',
+    image: imgFidelidade,
     features: [
       'Acúmulo de pontos digitais',
       'Resgate de benefícios simplificado',
@@ -83,6 +85,7 @@ export const PRODUCTS: Product[] = [
     description: 'Cardápio digital interativo para restaurantes com pedidos via QR Code e gestão de mesas.',
     icon: <Smartphone className="w-8 h-8 text-amber-500" />,
     href: 'https://appcardapio-production.up.railway.app/',
+    image: imgCardapio,
     features: [
       'Cardápio com imagens e descrições',
       'Pedidos diretos para cozinha',

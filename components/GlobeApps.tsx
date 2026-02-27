@@ -470,7 +470,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
   const glowTex = useMemo(() => makeGlowTexture(128), []);
 
   // improve texture parameters (encoding, anisotropy)
-  const { gl } = useThree();
+  const { gl, camera, size } = useThree();
   useEffect(() => {
     try {
       const maxAniso = (gl.capabilities && (gl.capabilities as any).getMaxAnisotropy) ? (gl.capabilities as any).getMaxAnisotropy() : (gl.getMaxAnisotropy ? gl.getMaxAnisotropy() : 1);
@@ -503,7 +503,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
   // create circular (bubble) masked textures from loaded images for crisper bubble look
   const processedTextures = useMemo(() => {
     try {
-      return (activeTextures as any).map((t: THREE.Texture) => {
+      return (activeTextures as any).map((t: THREE.Texture, idx: number) => {
         if (!t || !(t as any).image) return t;
         const img: HTMLImageElement = (t as any).image as HTMLImageElement;
         const size = 256;
@@ -521,13 +521,13 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
         const iw = img.width || size;
         const ih = img.height || size;
         const scale = Math.max(size / iw, size / ih);
-        // small per-image adjustment to center the 'cardapio' logo better
-        const srcIndex = textures.indexOf(t as any);
-        const isCardapio = srcs[srcIndex] === IMAGE_MAP.cardapio;
-        const isDelivery = srcs[srcIndex] === IMAGE_MAP.delivery;
+        // determine adjustments by product id to avoid URL/index mismatches
+        const productId = PRODUCTS[idx] && (PRODUCTS[idx] as any).id ? (PRODUCTS[idx] as any).id : null;
+        const isCardapio = productId === 'cardapio';
+        const isDelivery = productId === 'delivery';
         // reduce zoom for cardapio and delivery so contents fit better (zoom out)
         // cardapio: more zoomed out to show text; delivery: slightly zoomed out to show hamburger
-        const adjScale = isCardapio ? scale * 0.45 : isDelivery ? scale * 0.85 : scale;
+        const adjScale = isCardapio ? scale * 0.45 : isDelivery ? scale * 0.8 : scale;
         const dw = iw * adjScale;
         const dh = ih * adjScale;
         // small vertical adjustments to better frame contents
@@ -565,6 +565,24 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
   const ghostRefs = useRef<Array<THREE.Sprite | null>>([]);
   const blockedRef = useRef<boolean[]>([]);
   const hovered = useRef<number | null>(null);
+
+  // helper: convert object world position to screen coords (client pixels)
+  const worldToScreen = (obj: THREE.Object3D | null) => {
+    try {
+      if (!obj || !camera) return null;
+      const v = new THREE.Vector3();
+      obj.getWorldPosition(v);
+      v.project(camera);
+      const canvas = (gl && (gl.domElement as HTMLElement)) || document.querySelector('canvas');
+      if (!canvas) return null;
+      const rect = (canvas as HTMLElement).getBoundingClientRect();
+      const x = rect.left + (v.x + 1) * 0.5 * rect.width;
+      const y = rect.top + (-v.y + 1) * 0.5 * rect.height;
+      return { x, y };
+    } catch (e) { return null; }
+  };
+
+  // use processedTextures/activeTextures directly per product index (no runtime swapping)
 
   useFrame((state, delta) => {
     const cam = state.camera;
@@ -683,11 +701,11 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
           {/* glow behind */}
           <sprite
             ref={(r) => (glowRefs.current[i] = r)}
-            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
-            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
+            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             onPointerOut={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
             onPointerCancel={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
-            onPointerMove={(e) => { if (!blockedRef.current[i]) { onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerMove={(e) => { if (!blockedRef.current[i]) { const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             scale={[2.1, 2.1, 1]}
           >
             <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={false} opacity={0.65} />
@@ -705,12 +723,12 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
           <sprite
             ref={(r) => (spriteRefs.current[i] = r)}
             onClick={() => { if (blockedRef.current[i]) return; const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); hovered.current = null; onHover && onHover(null, null); }}
-            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerDown={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             onPointerUp={(e) => { if (blockedRef.current[i]) return; /* ensure pointer gesture opens in some browsers */ const p = PRODUCTS[i]; if (p && p.href) window.open(p.href, '_blank', 'noopener'); hovered.current = null; onHover && onHover(null, null); }}
-            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerOver={(e) => { if (!blockedRef.current[i]) { hovered.current = i; e.stopPropagation(); document.body.style.cursor = 'pointer'; const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             onPointerOut={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
             onPointerCancel={(e) => { if (!blockedRef.current[i]) { hovered.current = null; e.stopPropagation(); document.body.style.cursor = 'default'; onHover && onHover(null, null); } }}
-            onPointerMove={(e) => { if (!blockedRef.current[i]) { onHover && onHover(i, { x: (e as any).clientX, y: (e as any).clientY }); } }}
+            onPointerMove={(e) => { if (!blockedRef.current[i]) { const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             scale={[0.9, 0.9, 1]}
           >
             <spriteMaterial map={(processedTextures as any)[i] || (activeTextures as any)[i]} transparent depthWrite={false} depthTest={true} alphaTest={0.01} />
