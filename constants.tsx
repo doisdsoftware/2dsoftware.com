@@ -58,7 +58,7 @@ export const PRODUCTS: Product[] = [
     title: 'City Explorer',
     description: 'Guia interativo com pontos de interesse, rotas e recomendações locais para turistas.',
     icon: <MapIcon className="w-8 h-8 text-purple-500" />,
-    href: 'https://cityexplorer-production-c395.up.railway.app/',
+    href: 'https://cityexplorer.2dsoftware.com.br/',
     features: [
       'Mapas com filtros inteligentes',
       'Sugestões personalizadas',

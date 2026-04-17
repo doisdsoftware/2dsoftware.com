@@ -68,8 +68,11 @@ export default function SitesSection() {
           <div className="mt-6 flex flex-wrap gap-2">
             <TechBadge>React</TechBadge>
             <TechBadge>TypeScript</TechBadge>
+            <TechBadge>JavaScript</TechBadge>
+            <TechBadge>Node.js</TechBadge>
             <TechBadge>Vite</TechBadge>
             <TechBadge>Tailwind</TechBadge>
+            <TechBadge>MySQL</TechBadge>
           </div>
         </aside>
       </div>

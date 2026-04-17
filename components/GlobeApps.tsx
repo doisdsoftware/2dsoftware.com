@@ -296,7 +296,7 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
             const idx = i * perCurve + k;
             return (
               <sprite key={idx} ref={(r) => (glowRefs.current[idx] = r)} visible={false}>
-                <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={false} opacity={0.95} />
+                <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={true} opacity={0.85} />
               </sprite>
             );
           })}
@@ -672,17 +672,26 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
             (spr.material as THREE.SpriteMaterial).opacity = 0.0;
             try { (spr.material as any).depthTest = true; } catch(e) {}
           }
+          if (glow) {
+            try { (glow as any).visible = false; } catch (e) { /* ignore */ }
+          }
           if (ghost) {
             ghost.visible = true;
             ghost.scale.set(baseScale * mobileFactor * 0.9 * hoverBoost, baseScale * mobileFactor * 0.9 * hoverBoost, 1);
             const gmat = ghost.material as THREE.SpriteMaterial;
-            if (gmat) { gmat.opacity = 0.36; gmat.color.set('#2a2d31'); }
+            if (gmat) {
+              gmat.opacity = 0.48;
+              gmat.color.set('#ffffff');
+            }
             (ghost as any).renderOrder = Math.round(1500 - dist * 10);
           }
         } else {
           if (spr.material) {
             (spr.material as THREE.SpriteMaterial).opacity = 1.0 * (1 - t * 0.15);
             try { (spr.material as any).depthTest = false; } catch(e) {}
+          }
+          if (glow) {
+            try { (glow as any).visible = true; } catch (e) { /* ignore */ }
           }
           if (ghost) {
             ghost.visible = false;
@@ -708,7 +717,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
             onPointerMove={(e) => { if (!blockedRef.current[i]) { const pos = worldToScreen(spriteRefs.current[i] || glowRefs.current[i]); onHover && onHover(i, pos); } }}
             scale={[2.1, 2.1, 1]}
           >
-            <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={false} opacity={0.65} />
+            <spriteMaterial map={glowTex} blending={THREE.AdditiveBlending} transparent depthWrite={false} depthTest={true} opacity={0.65} />
           </sprite>
 
           {/* ghost (dim) copy shown when sprite is occluded by globe */}
@@ -717,7 +726,7 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
             visible={false}
             scale={[1.0, 1.0, 1]}
           >
-            <spriteMaterial map={(processedTextures as any)[i] || (activeTextures as any)[i]} transparent depthWrite={false} depthTest={false} opacity={0.36} color={'#2a2d31'} />
+            <spriteMaterial map={(processedTextures as any)[i] || (activeTextures as any)[i]} transparent depthWrite={false} depthTest={true} opacity={0.5} color={'#ffffff'} />
           </sprite>
 
           <sprite
@@ -768,30 +777,52 @@ const GlobeApps: React.FC = () => {
 
   // Preload product images/textures to speed up sprite initialization and create THREE.Textures
   useEffect(() => {
-    try {
-      const urls: string[] = [];
-      PRODUCTS.forEach((p: any) => { if (p.id && p.image) urls.push(p.image); });
-      try { Object.values(IMAGE_MAP).forEach((v) => urls.push(v)); } catch (e) {}
-      const texLoader = new THREE.TextureLoader();
-      const loaded: THREE.Texture[] = [];
-      let pending = urls.length;
-      if (pending === 0) { setPreloadedTextures([]); return; }
-      urls.forEach((u, idx) => {
-        try { const img = new Image(); img.src = u; } catch (e) {}
-        try {
-          texLoader.load(u, (tex) => {
-            try {
-              tex.generateMipmaps = true;
-              tex.minFilter = THREE.LinearMipmapLinearFilter;
-              tex.magFilter = THREE.LinearFilter;
-              tex.needsUpdate = true;
-            } catch (e) {}
-            loaded[idx] = tex;
-            pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length));
-          }, undefined, () => { pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length)); });
-        } catch (e) { pending--; if (pending <= 0) setPreloadedTextures(loaded.slice(0, urls.length)); }
+    const urls = PRODUCTS.map((p: any) => {
+      const id = p.id as string;
+      return (IMAGE_MAP as Record<string, string>)[id] ?? (p.image as string | undefined);
+    }).filter((u): u is string => Boolean(u));
+
+    if (urls.length !== PRODUCTS.length) {
+      setPreloadedTextures(null);
+      return;
+    }
+
+    const texLoader = new THREE.TextureLoader();
+    let cancelled = false;
+
+    Promise.all(
+      urls.map(
+        (u) =>
+          new Promise<THREE.Texture>((resolve, reject) => {
+            texLoader.load(
+              u,
+              (tex) => {
+                try {
+                  tex.generateMipmaps = true;
+                  tex.minFilter = THREE.LinearMipmapLinearFilter;
+                  tex.magFilter = THREE.LinearFilter;
+                  tex.needsUpdate = true;
+                } catch {
+                  /* ignore */
+                }
+                resolve(tex);
+              },
+              undefined,
+              () => reject(new Error(`texture load failed: ${u}`))
+            );
+          })
+      )
+    )
+      .then((textures) => {
+        if (!cancelled) setPreloadedTextures(textures);
+      })
+      .catch(() => {
+        if (!cancelled) setPreloadedTextures(null);
       });
-    } catch (e) {}
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   

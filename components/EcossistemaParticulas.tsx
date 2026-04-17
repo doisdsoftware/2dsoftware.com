@@ -26,7 +26,7 @@ const LOGO_AGENDAI = new URL('../logo/Logo AgendAI.png', import.meta.url).href;
 
 const APPS: AppNode[] = [
   { id: 'delivery', name: 'App Delivery', href: 'https://gemini-burgueroficial.vercel.app/', status: 'Ativo', imgSrc: LOGO_DELIVERY } as any,
-  { id: 'explorer', name: 'City Explorer', href: 'https://cityexplorer-production-c395.up.railway.app/', status: 'Ativo', imgSrc: LOGO_EXPLORER } as any,
+  { id: 'explorer', name: 'City Explorer', href: 'https://cityexplorer.2dsoftware.com.br/', status: 'Ativo', imgSrc: LOGO_EXPLORER } as any,
   { id: 'fidelidade', name: 'App Fidelidade', href: 'https://appfidelidade-production.up.railway.app/', status: 'Em desenvolvimento', imgSrc: LOGO_FIDELIDADE } as any,
   { id: 'cardapio', name: 'App Cardápio', href: 'https://appcardapio-production.up.railway.app/', status: 'Em desenvolvimento', imgSrc: LOGO_CARDAPIO } as any,
   { id: 'agendai', name: 'App AgendAI', href: 'https://agend-ai-jade.vercel.app/', status: 'Em desenvolvimento', imgSrc: LOGO_AGENDAI } as any,

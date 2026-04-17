@@ -69,11 +69,30 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 text-slate-500 text-sm font-semibold">
-          <p>© 2024 2D Software LTDA. Todos os direitos reservados.</p>
-          <div className="flex space-x-8 mt-6 md:mt-0">
-            <a href="#" className="hover:text-blue-600 transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Termos</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Instagram</a>
+          <p>© {new Date().getFullYear()} 2D Software LTDA. Todos os direitos reservados.</p>
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8 mt-6 md:mt-0">
+            <a
+              href="mailto:softwarehouse@2dsoftware.com.br?subject=Pol%C3%ADtica%20de%20Privacidade"
+              className="hover:text-blue-600 transition-colors"
+              rel="noopener noreferrer"
+            >
+              Privacidade
+            </a>
+            <a
+              href="mailto:softwarehouse@2dsoftware.com.br?subject=Termos%20de%20Uso"
+              className="hover:text-blue-600 transition-colors"
+              rel="noopener noreferrer"
+            >
+              Termos
+            </a>
+            <a
+              href="https://www.instagram.com/2dsoftware/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 transition-colors"
+            >
+              Instagram
+            </a>
           </div>
         </div>
       </div>
