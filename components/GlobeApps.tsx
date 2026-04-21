@@ -4,6 +4,7 @@ import * as THREE from 'three';
 // enable three.js cache so preloaded textures are reused by TextureLoader / useLoader
 (THREE as any).Cache.enabled = true;
 import { PRODUCTS } from '../constants';
+import GlobeAmbientBridge from './GlobeAmbientBridge';
 
 // Import local logos from `logo/` folder
 import imgCardapio from '../logo/App cardapio.png';
@@ -965,21 +966,48 @@ const GlobeApps: React.FC = () => {
     };
   }, []);
 
+  /** Muitas paradas próximas evitam faixas / “linhas” entre cores no degradê. */
   const sectionGradient =
     'linear-gradient(180deg,' +
-    '#f8fafc 0%,' +
-    '#e8eef5 5%,' +
-    '#94a3b8 12%,' +
-    '#334155 20%,' +
-    '#0f172a 28%,' +
-    '#071427 36%,' +
-    '#051018 44%,' +
-    '#051018 56%,' +
-    '#071427 64%,' +
-    '#0f172a 72%,' +
-    '#cbd5e1 82%,' +
-    '#f1f5f9 90%,' +
-    '#ffffff 100%)';
+    [
+      '#f8fafc 0%',
+      '#f3f6f9 3%',
+      '#eef2f6 6%',
+      '#e7ecf4 9%',
+      '#dde5ee 12%',
+      '#d0dbe8 15%',
+      '#c1ccdf 18%',
+      '#afbbd3 21%',
+      '#96a7c2 24%',
+      '#7d91b0 27%',
+      '#667c9e 30%',
+      '#536685 33%',
+      '#44556f 36%',
+      '#374559 39%',
+      '#2d3a4a 42%',
+      '#243041 45%',
+      '#1c2838 48%',
+      '#162030 51%',
+      '#121a28 54%',
+      '#0f1622 57%',
+      '#0d131e 60%',
+      '#0c121c 63%',
+      '#0d131e 66%',
+      '#101722 69%',
+      '#141c2a 72%',
+      '#1a2434 75%',
+      '#222f3f 78%',
+      '#2c3c4d 81%',
+      '#3a4d61 84%',
+      '#4d6378 87%',
+      '#6b7f95 90%',
+      '#8e9fb5 92%',
+      '#b3c0d4 94%',
+      '#d8e1ec 96%',
+      '#eef2f7 98%',
+      '#ffffff 100%',
+    ].join(', ') +
+    ')';
 
   return (
     <section
@@ -988,29 +1016,7 @@ const GlobeApps: React.FC = () => {
       aria-label="Ecossistema de aplicativos"
       style={{ background: sectionGradient }}
     >
-      <svg
-        className="pointer-events-none absolute left-0 right-0 top-0 z-[14] h-10 w-full text-slate-100 sm:h-14 md:h-16"
-        viewBox="0 0 1200 80"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        <path
-          fill="currentColor"
-          d="M0,0 L1200,0 L1200,8 Q900,48 600,38 Q300,28 0,18 Z"
-          opacity={0.95}
-        />
-      </svg>
-      <svg
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[14] h-12 w-full text-white sm:h-16 md:h-20"
-        viewBox="0 0 1200 96"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        <path
-          fill="currentColor"
-          d="M0,96 L0,78 Q300,40 600,52 Q900,64 1200,28 L1200,96 Z"
-        />
-      </svg>
+      <GlobeAmbientBridge squareCount={viewportW < 640 ? 16 : viewportW < 1024 ? 24 : 32} />
     <div ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
       <Canvas
         camera={{ position: [0, 0, 8], fov: 50 }}
