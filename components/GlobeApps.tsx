@@ -965,9 +965,69 @@ const GlobeApps: React.FC = () => {
     };
   }, []);
 
+  const sectionGradient =
+    'linear-gradient(180deg,' +
+    '#f8fafc 0%,' +
+    '#e8eef5 5%,' +
+    '#94a3b8 12%,' +
+    '#334155 20%,' +
+    '#0f172a 28%,' +
+    '#071427 36%,' +
+    '#051018 44%,' +
+    '#051018 56%,' +
+    '#071427 64%,' +
+    '#0f172a 72%,' +
+    '#cbd5e1 82%,' +
+    '#f1f5f9 90%,' +
+    '#ffffff 100%)';
+
   return (
-    <div id="ecossistema" ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ background: '#071b39', position: 'relative', zIndex: 5, width: '100%', height: '100%', transform: `translateY(calc(-${TOP_EXTEND}px + 2cm))`, touchAction: 'pan-y' }}>
+    <section
+      id="ecossistema"
+      className="relative isolate scroll-mt-20 md:scroll-mt-24 overflow-visible"
+      aria-label="Ecossistema de aplicativos"
+      style={{ background: sectionGradient }}
+    >
+      <svg
+        className="pointer-events-none absolute left-0 right-0 top-0 z-[14] h-10 w-full text-slate-100 sm:h-14 md:h-16"
+        viewBox="0 0 1200 80"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path
+          fill="currentColor"
+          d="M0,0 L1200,0 L1200,8 Q900,48 600,38 Q300,28 0,18 Z"
+          opacity={0.95}
+        />
+      </svg>
+      <svg
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[14] h-12 w-full text-white sm:h-16 md:h-20"
+        viewBox="0 0 1200 96"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path
+          fill="currentColor"
+          d="M0,96 L0,78 Q300,40 600,52 Q900,64 1200,28 L1200,96 Z"
+        />
+      </svg>
+    <div ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
+      <Canvas
+        camera={{ position: [0, 0, 8], fov: 50 }}
+        gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
+        }}
+        style={{
+          background: 'transparent',
+          position: 'relative',
+          zIndex: 5,
+          width: '100%',
+          height: '100%',
+          transform: `translateY(calc(-${TOP_EXTEND}px + 1.25cm))`,
+          touchAction: 'pan-y',
+        }}
+      >
         <SetCameraRef />
         <hemisphereLight skyColor={0x202033} groundColor={0x08060a} intensity={0.25} />
         <ambientLight intensity={0.3} />
@@ -1030,6 +1090,7 @@ const GlobeApps: React.FC = () => {
         </div>
       )}
     </div>
+    </section>
   );
 };
 

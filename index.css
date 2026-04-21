@@ -9,7 +9,32 @@ body {
   color: #0f172a;
   overflow-x: hidden;
 }
-h1, h2, h3, h4 { font-family: 'Sora', sans-serif; }
+
+/* Reforço para âncoras com navbar fixa (o JS também aplica offset) */
+#sobre,
+#ecossistema,
+#produtos,
+#sites,
+#vantagens,
+#tecnologia {
+  scroll-margin-top: 5.5rem;
+}
+@media (min-width: 640px) {
+  #sobre,
+  #ecossistema,
+  #produtos,
+  #sites,
+  #vantagens,
+  #tecnologia {
+    scroll-margin-top: 6rem;
+  }
+}
+
+/* Globo: evita o padding vertical global aplicado a `section` */
+#ecossistema {
+  padding-top: 0;
+  padding-bottom: 0;
+}
 
 .glass {
   background: rgba(255, 255, 255, 0.7);

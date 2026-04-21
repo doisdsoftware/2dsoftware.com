@@ -29,10 +29,12 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${mobileMenuOpen ? 'overflow-visible' : 'overflow-hidden'} ${
-      isScrolled ? 'h-12 glass' : 'h-20 bg-transparent'
-    }`}>
-      <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center h-full">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        mobileMenuOpen ? 'overflow-visible' : 'max-md:overflow-x-hidden md:overflow-visible'
+      } ${isScrolled ? 'h-12 glass' : 'h-20 bg-transparent'}`}
+    >
+      <div className="container mx-auto min-w-0 px-4 sm:px-6 flex justify-between items-center h-full gap-2">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -50,24 +52,15 @@ const Navbar: React.FC = () => {
           </div>
           <span className="hidden sm:inline-block text-xl font-bold tracking-tighter text-slate-900">Software</span>
         </motion.div>
-        <div className="hidden sm:flex items-center space-x-4 md:space-x-8">
+        <div className="hidden sm:flex min-w-0 items-center gap-3 md:gap-5 lg:gap-7">
           {NAV_ITEMS.map((item, idx) => (
             <motion.a
               key={item.label}
               href={item.href}
-              onClick={(e) => {
-                try {
-                  if (item.href && item.href.startsWith('#')) {
-                    e.preventDefault();
-                    const el = document.querySelector(item.href);
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }
-                } catch (err) {}
-              }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
+              className="whitespace-nowrap text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
             >
               {item.label}
             </motion.a>
@@ -105,31 +98,24 @@ const Navbar: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass absolute top-full left-0 right-0 overflow-hidden"
+            className="md:hidden absolute top-full left-0 right-0 overflow-hidden border-t border-slate-700/90 bg-slate-900/97 shadow-2xl shadow-black/40 backdrop-blur-xl"
           >
-            <div className="flex flex-col p-6 space-y-4">
+            <div className="flex flex-col gap-3 p-5">
               {NAV_ITEMS.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  onClick={(e) => {
-                    try {
-                      if (item.href && item.href.startsWith('#')) {
-                        e.preventDefault();
-                        const el = document.querySelector(item.href);
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    } catch (err) {}
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-base sm:text-lg font-semibold text-slate-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full rounded-xl border border-slate-600/90 bg-slate-800 px-4 py-3.5 text-center text-base font-semibold text-white shadow-inner transition hover:bg-slate-700 active:bg-slate-800"
                 >
                   {item.label}
                 </a>
               ))}
               <a
                 href="https://wa.me/5512997775889"
-                className="w-full py-3 bg-blue-600 text-white text-center rounded-lg font-bold"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-xl bg-blue-600 py-3.5 text-center text-base font-bold text-white shadow-lg shadow-blue-900/30 transition hover:bg-blue-500"
               >
                 Falar no WhatsApp
               </a>

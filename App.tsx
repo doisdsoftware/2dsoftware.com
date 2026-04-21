@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { scrollToHash } from './utils/scrollToHash';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -10,24 +11,21 @@ import GlobeApps from './components/GlobeApps';
 import SitesSection from './components/SitesSection';
 import Footer from './components/Footer';
 import AnimatedBackground from './components/AnimatedBackground';
+import ConsentGate from './components/ConsentGate';
 
 const App: React.FC = () => {
-  // Smooth scroll implementation
+  // Scroll suave para âncoras internas (navbar, hero, rodapé) com offset da navbar fixa
   useEffect(() => {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const href = this.getAttribute('href');
-        if (!href) return;
-        
-        const targetElement = document.querySelector(href);
-        if (targetElement) {
-          targetElement.scrollIntoView({
-            behavior: 'smooth'
-          });
-        }
-      });
-    });
+    const onClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement | null)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+      if (!target) return;
+      const href = target.getAttribute('href');
+      if (href == null) return;
+      if (!scrollToHash(href)) return;
+      e.preventDefault();
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
   }, []);
 
   // Mobile back-button behavior: first back -> scroll to top, second back -> exit
@@ -64,6 +62,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
       <AnimatedBackground />
+      <ConsentGate />
       <Navbar />
       <main>
         <Hero />
