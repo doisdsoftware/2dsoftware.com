@@ -865,14 +865,17 @@ const GlobeApps: React.FC = () => {
 
     function onDown(e: PointerEvent) {
       if (!canvas) return;
-      // On touch, start drag for any pointer on the canvas to ensure full coverage (top/bottom included)
+      // Toque só inicia drag dentro do retângulo do canvas (evita capturar toques na área do wrapper / scroll).
       try {
         if (e.pointerType === 'touch') {
+          const r = canvas.getBoundingClientRect();
+          const { clientX: x, clientY: y } = e;
+          if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
           dragRefLocal.down = true;
-          dragRefLocal.lastX = e.clientX;
-          dragRefLocal.lastY = e.clientY;
+          dragRefLocal.lastX = x;
+          dragRefLocal.lastY = y;
           dragRefLocal.isTouch = true;
-          try { (e.target as Element).setPointerCapture?.(e.pointerId); } catch {}
+          try { canvas.setPointerCapture(e.pointerId); } catch {}
           return;
         }
       } catch (err) {}
@@ -938,7 +941,11 @@ const GlobeApps: React.FC = () => {
     }
 
     function onUp(e: PointerEvent) {
-      try { (e.target as Element).releasePointerCapture?.(e.pointerId); } catch {}
+      try {
+        if (canvas) canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        /* capture pode ter sido noutro elemento em alguns browsers */
+      }
       dragRef.current.down = false;
       // inertia
       const g = groupRef.current;
@@ -954,13 +961,11 @@ const GlobeApps: React.FC = () => {
     }
 
     if (canvas) canvas.addEventListener('pointerdown', onDown);
-    if (el) el.addEventListener('pointerdown', onDown);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
 
     return () => {
       if (canvas) canvas.removeEventListener('pointerdown', onDown);
-      if (el) el.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };

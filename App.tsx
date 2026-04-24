@@ -1,6 +1,5 @@
 
 import React, { useEffect } from 'react';
-import { scrollToHash } from './utils/scrollToHash';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -14,19 +13,7 @@ import AnimatedBackground from './components/AnimatedBackground';
 import ConsentGate from './components/ConsentGate';
 
 const App: React.FC = () => {
-  // Scroll suave para âncoras internas (navbar, hero, rodapé) com offset da navbar fixa
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement | null)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
-      if (!target) return;
-      const href = target.getAttribute('href');
-      if (href == null) return;
-      if (!scrollToHash(href)) return;
-      e.preventDefault();
-    };
-    document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
-  }, []);
+  // Âncoras internas: links nativos href="#..." + scroll-margin-top em index.css (sem interceptar no document).
 
   // Mobile back-button behavior: first back -> scroll to top, second back -> exit
   useEffect(() => {
@@ -59,22 +46,26 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  /* Navbar e gates fixos ficam FORA do wrapper com overflow-x-hidden: em vários
+     navegadores mobile, fixed + overflow no ancestral quebra hit-testing/toques. */
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <>
       <AnimatedBackground />
       <ConsentGate />
       <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <GlobeApps />
-        <Products />
-        <SitesSection />
-        <Features />
-        <TechSection />
-      </main>
-      <Footer />
-    </div>
+      <div className="min-h-screen overflow-x-hidden">
+        <main>
+          <Hero />
+          <About />
+          <GlobeApps />
+          <Products />
+          <SitesSection />
+          <Features />
+          <TechSection />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

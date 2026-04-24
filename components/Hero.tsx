@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, MessageSquare } from 'lucide-react';
+import { handleInternalHashClick } from '../utils/scrollToHash';
 
 const TerminalAnimation: React.FC = () => {
   const lines = [
@@ -96,6 +97,7 @@ const Hero: React.FC = () => {
             </motion.a>
             <motion.a
               href="#produtos"
+              onClick={(e) => handleInternalHashClick(e, '#produtos')}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               className="flex items-center justify-center space-x-2 px-6 py-3 sm:px-10 sm:py-5 glass hover:bg-white rounded-2xl font-bold transition-all border border-blue-100 text-slate-700"

@@ -40,13 +40,7 @@
     </script>
     <!-- Tailwind will be processed locally via PostCSS in production -->
     <link rel="icon" href="/favicon.svg" />
-    <!-- Preload app logos so globe particle textures appear with page images -->
-    <link rel="preload" as="image" href="/logo/App%20cardapio.png">
-    <link rel="preload" as="image" href="/logo/App%20delivery.png">
-    <link rel="preload" as="image" href="/logo/ChatGPT%20Image%2014%20de%20fev.%20de%202026,%2019_14_24.png">
-    <link rel="preload" as="image" href="/logo/Logo%20AgendAI.png">
-    <link rel="preload" as="image" href="/logo/logo%20app%20city%20explorer.png">
-    <link rel="preload" as="image" href="/logo/Logo%20app%20fidelidade.png">
+    <!-- Logos do globo vêm de imports no Vite (URLs em /assets/...); preloads em /logo/ geravam aviso de credenciais e “não usado”. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">

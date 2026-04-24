@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { MessageCircle, Mail, MapPin, Phone } from 'lucide-react';
 import LegalModal from './LegalModal';
 import { PrivacyContent, TermsContent } from './LegalDocuments';
+import { handleInternalHashClick } from '../utils/scrollToHash';
 
 const InstagramGlyph: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -89,7 +90,16 @@ const Footer: React.FC = () => {
 
         <nav aria-label="Mapa do site" className="flex flex-wrap justify-center gap-x-6 gap-y-3 border-t border-slate-100 pt-10 text-sm font-semibold text-slate-600">
           {footerNav.map((item) => (
-            <a key={item.href} href={item.href} className="hover:text-blue-600 transition-colors">
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={
+                item.href.startsWith('#')
+                  ? (e) => handleInternalHashClick(e, item.href)
+                  : undefined
+              }
+              className="hover:text-blue-600 transition-colors"
+            >
               {item.label}
             </a>
           ))}
