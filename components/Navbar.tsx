@@ -30,11 +30,22 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        mobileMenuOpen ? 'overflow-visible' : 'max-md:overflow-x-hidden md:overflow-visible'
+      className={`fixed top-0 left-0 right-0 transition-all duration-300 ${
+        mobileMenuOpen
+          ? 'z-[100] overflow-visible'
+          : 'z-50 max-md:overflow-x-hidden md:overflow-visible'
       } ${isScrolled ? 'h-12 glass' : 'h-20 bg-transparent'}`}
     >
-      <div className="container mx-auto min-w-0 px-4 sm:px-6 flex justify-between items-center h-full gap-2">
+      {/* Camada abaixo do cabeçalho e do painel: fecha o menu e garante toques acima do conteúdo (z-50–60) no mobile */}
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          className="md:hidden fixed inset-0 z-0 cursor-default bg-slate-900/50"
+          aria-label="Fechar menu"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      <div className="relative z-10 container mx-auto min-w-0 px-4 sm:px-6 flex justify-between items-center h-full gap-2">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -98,7 +109,7 @@ const Navbar: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden absolute top-full left-0 right-0 overflow-hidden border-t border-slate-700/90 bg-slate-900/97 shadow-2xl shadow-black/40 backdrop-blur-xl"
+            className="absolute top-full left-0 right-0 z-10 overflow-hidden border-t border-slate-700/90 bg-slate-900/97 shadow-2xl shadow-black/40 backdrop-blur-xl md:hidden"
           >
             <div className="flex flex-col gap-3 p-5">
               {NAV_ITEMS.map((item) => (
@@ -106,7 +117,7 @@ const Navbar: React.FC = () => {
                   key={item.label}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full rounded-xl border border-slate-600/90 bg-slate-800 px-4 py-3.5 text-center text-base font-semibold text-white shadow-inner transition hover:bg-slate-700 active:bg-slate-800"
+                  className="block w-full touch-manipulation rounded-xl border border-slate-600/90 bg-slate-800 px-4 py-3.5 text-center text-base font-semibold text-white shadow-inner transition hover:bg-slate-700 active:bg-slate-800"
                 >
                   {item.label}
                 </a>
@@ -115,7 +126,8 @@ const Navbar: React.FC = () => {
                 href="https://wa.me/5512997775889"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full rounded-xl bg-blue-600 py-3.5 text-center text-base font-bold text-white shadow-lg shadow-blue-900/30 transition hover:bg-blue-500"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full touch-manipulation rounded-xl bg-blue-600 py-3.5 text-center text-base font-bold text-white shadow-lg shadow-blue-900/30 transition hover:bg-blue-500"
               >
                 Falar no WhatsApp
               </a>
