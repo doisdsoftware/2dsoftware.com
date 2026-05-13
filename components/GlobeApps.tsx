@@ -22,9 +22,36 @@ const IMAGE_MAP: Record<string, string> = {
   fidelidade: imgFidelidade,
 };
 
-// Earth texture URLs (NASA Blue Marble via three-globe)
-const EARTH_DAY_URL = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
-const EARTH_BUMP_URL = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
+// Earth textures imported as ES modules (Vite resolves to hashed URLs)
+import earthDayImg from '../textures/earth-day.jpg';
+import earthNormalImg from '../textures/earth-normal.jpg';
+import earthCloudsImg from '../textures/earth-clouds.png';
+import earthLightsImg from '../textures/earth-lights.png';
+
+// Fresnel atmosphere shader – glows brighter at the planet's rim
+const ATMO_VERT = `
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  void main() {
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vViewDir = normalize(cameraPosition - worldPos.xyz);
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+const ATMO_FRAG = `
+  uniform float uTime;
+  uniform vec3 uColor;
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  void main() {
+    float fresnel = 1.0 - dot(vNormal, vViewDir);
+    fresnel = pow(fresnel, 3.5);
+    float pulse = 0.92 + 0.08 * sin(uTime * 1.2);
+    float alpha = fresnel * pulse * 0.85;
+    gl_FragColor = vec4(uColor, alpha);
+  }
+`;
 
 // Globe sizing defaults and visual bleed configuration
 const GLOBE_RADIUS_DEFAULT = 2.4; // default globe radius
@@ -308,6 +335,78 @@ const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = (
         </group>
       ))}
     </group>
+  );
+};
+
+// Full Earth scene: loads textures via useLoader (must be inside <Canvas>)
+const EarthScene: React.FC<{
+  radius: number;
+  dragRef: React.MutableRefObject<any>;
+}> = ({ radius, dragRef }) => {
+  const [dayMap, normalMap, cloudMap, lightsMap] = useLoader(THREE.TextureLoader, [
+    earthDayImg,
+    earthNormalImg,
+    earthCloudsImg,
+    earthLightsImg,
+  ]);
+
+  useEffect(() => {
+    [dayMap, normalMap, cloudMap, lightsMap].forEach((tex) => {
+      if (!tex) return;
+      try { (tex as any).colorSpace = (THREE as any).SRGBColorSpace; } catch {}
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.needsUpdate = true;
+    });
+  }, [dayMap, normalMap, cloudMap, lightsMap]);
+
+  // Cloud layer independent rotation
+  const cloudRef = useRef<THREE.Mesh>(null);
+
+  useFrame((_, delta) => {
+    if (cloudRef.current) cloudRef.current.rotation.y += 0.018 * delta;
+  });
+
+  return (
+    <>
+      {/* Earth surface */}
+      <mesh
+        onPointerDown={(e: any) => {
+          try { e.stopPropagation(); } catch {}
+          dragRef.current.down = true;
+          dragRef.current.lastX = (e.clientX ?? e.nativeEvent?.clientX) || 0;
+          dragRef.current.lastY = (e.clientY ?? e.nativeEvent?.clientY) || 0;
+          dragRef.current.isTouch = e.pointerType === 'touch' || (e.nativeEvent && e.nativeEvent.pointerType === 'touch');
+          try { (e.target as Element).setPointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
+        }}
+        onPointerUp={(e: any) => {
+          try { e.stopPropagation(); } catch {}
+          try { (e.target as Element).releasePointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
+          dragRef.current.down = false;
+        }}
+      >
+        <sphereGeometry args={[radius, 64, 64]} />
+        <meshStandardMaterial
+          map={dayMap}
+          normalMap={normalMap}
+          normalScale={new THREE.Vector2(2, 2)}
+          metalness={0.05}
+          roughness={0.55}
+          emissiveMap={lightsMap}
+          emissive="#ffcc66"
+          emissiveIntensity={1.5}
+        />
+      </mesh>
+
+      {/* Cloud layer */}
+      <mesh ref={cloudRef as any}>
+        <sphereGeometry args={[radius * 1.008, 64, 64]} />
+        <meshStandardMaterial map={cloudMap} transparent opacity={0.3} depthWrite={false} />
+      </mesh>
+
+      
+    </>
   );
 };
 
@@ -830,27 +929,6 @@ const GlobeApps: React.FC = () => {
     };
   }, []);
 
-  // Earth textures (loaded imperatively to avoid Suspense complexity)
-  const [earthDayMap, setEarthDayMap] = useState<THREE.Texture | null>(null);
-  const [earthBumpMap, setEarthBumpMap] = useState<THREE.Texture | null>(null);
-
-  useEffect(() => {
-    const loader = new THREE.TextureLoader();
-    loader.load(EARTH_DAY_URL, (tex) => {
-      try { (tex as any).colorSpace = (THREE as any).SRGBColorSpace; } catch {}
-      tex.generateMipmaps = true;
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.needsUpdate = true;
-      setEarthDayMap(tex);
-    });
-    loader.load(EARTH_BUMP_URL, (tex) => {
-      tex.generateMipmaps = true;
-      tex.needsUpdate = true;
-      setEarthBumpMap(tex);
-    });
-  }, []);
-
   // Auto-rotate when not dragging: implement inside Canvas via a small helper component
   const AutoRotate: React.FC = () => {
     useFrame((state, delta) => {
@@ -1063,10 +1141,11 @@ const GlobeApps: React.FC = () => {
         }}
       >
         <SetCameraRef />
-        <hemisphereLight skyColor={0x88aacc} groundColor={0x223344} intensity={0.4} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 10]} intensity={0.9} />
-        <pointLight position={[-10, -10, -10]} intensity={0.3} />
+        <hemisphereLight skyColor={0xaaccee} groundColor={0x223344} intensity={0.5} />
+        <ambientLight intensity={0.35} />
+        <directionalLight position={[5, 3, 8]} intensity={1.6} color="#fff5e6" />
+        <directionalLight position={[-4, -2, -6]} intensity={0.15} color="#334466" />
+        <pointLight position={[-10, -10, -10]} intensity={0.2} color="#182848" />
 
         {/* Stars background and auto-rotate helper */}
         <StarsBackground />
@@ -1076,38 +1155,15 @@ const GlobeApps: React.FC = () => {
           {/* connections particles (moved inside group so they rotate with the globe) */}
           <Connections positions={positions} radius={globeRadius} />
 
-          {/* Earth globe */}
-          <mesh
-            onPointerDown={(e: any) => {
-              try { e.stopPropagation(); } catch {}
-              dragRef.current.down = true;
-              dragRef.current.lastX = (e.clientX ?? e.nativeEvent?.clientX) || 0;
-              dragRef.current.lastY = (e.clientY ?? e.nativeEvent?.clientY) || 0;
-              dragRef.current.isTouch = e.pointerType === 'touch' || (e.nativeEvent && e.nativeEvent.pointerType === 'touch');
-              try { (e.target as Element).setPointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
-            }}
-            onPointerUp={(e: any) => {
-              try { e.stopPropagation(); } catch {}
-              try { (e.target as Element).releasePointerCapture?.(e.pointerId ?? (e.nativeEvent && e.nativeEvent.pointerId)); } catch {}
-              dragRef.current.down = false;
-            }}
-          >
-            <sphereGeometry args={[globeRadius, 64, 64]} />
-            <meshStandardMaterial
-              map={earthDayMap}
-              bumpMap={earthBumpMap}
-              bumpScale={0.05}
-              metalness={0.1}
-              roughness={0.7}
-              color={earthDayMap ? '#ffffff' : '#1a3a5c'}
-            />
-          </mesh>
-
-          {/* Atmosphere glow */}
-          <mesh>
-            <sphereGeometry args={[globeRadius * 1.025, 64, 64]} />
-            <meshBasicMaterial color="#4da6ff" transparent opacity={0.1} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
-          </mesh>
+          {/* Planet Earth (textures loaded via useLoader + Suspense) */}
+          <React.Suspense fallback={
+            <mesh>
+              <sphereGeometry args={[globeRadius, 64, 64]} />
+              <meshStandardMaterial color="#1a3a5c" metalness={0.1} roughness={0.7} />
+            </mesh>
+          }>
+            <EarthScene radius={globeRadius} dragRef={dragRef} />
+          </React.Suspense>
 
           <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} preloadedTextures={preloadedTextures} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
 

@@ -52,24 +52,50 @@ const CableCar: React.FC = () => (
 
 const DigitalSnow: React.FC<{ id: number }> = ({ id }) => {
   const randomX = useMemo(() => Math.random() * 100, []);
-  const randomDuration = useMemo(() => 20 + Math.random() * 30, []);
-  const randomDelay = useMemo(() => Math.random() * 20, []);
-  
+  const randomDuration = useMemo(() => 14 + Math.random() * 22, []);
+  const randomDelay = useMemo(() => Math.random() * 18, []);
+  const angle = useMemo(() => 20 + Math.random() * 25, []);
+  const headSize = useMemo(() => 2.5 + Math.random() * 3.5, []);
+  const tailLen = useMemo(() => 16 + Math.random() * 36, []);
+
   return (
     <motion.div
       initial={{ y: -20, opacity: 0, x: `${randomX}%` }}
-      animate={{ 
-        y: '110vh', 
-        opacity: [0, 0.5, 0.5, 0],
+      animate={{
+        y: '110vh',
+        opacity: [0, 0.6, 0.5, 0],
       }}
-      transition={{ 
-        duration: randomDuration, 
-        repeat: Infinity, 
+      transition={{
+        duration: randomDuration,
+        repeat: Infinity,
         delay: randomDelay,
-        ease: "linear" 
+        ease: 'linear',
       }}
-      className="absolute w-2 h-2 bg-blue-400/20 rounded-sm pointer-events-none rotate-45"
-    />
+      className="absolute pointer-events-none"
+      style={{ transform: `rotate(${angle}deg)` }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div
+          style={{
+            width: tailLen,
+            height: headSize * 0.5,
+            borderRadius: '999px 0 0 999px',
+            background: 'linear-gradient(to right, transparent, rgba(160,200,255,0.12), rgba(190,220,255,0.35))',
+            marginRight: -1,
+          }}
+        />
+        <div
+          style={{
+            width: headSize,
+            height: headSize,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #fff 0%, rgba(150,200,255,0.8) 45%, rgba(100,170,255,0.2) 75%, transparent 100%)',
+            boxShadow: `0 0 ${headSize * 2}px rgba(130,190,255,0.5), 0 0 ${headSize * 3.5}px rgba(100,160,255,0.2)`,
+            flexShrink: 0,
+          }}
+        />
+      </div>
+    </motion.div>
   );
 };
 
