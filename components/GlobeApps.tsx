@@ -22,6 +22,10 @@ const IMAGE_MAP: Record<string, string> = {
   fidelidade: imgFidelidade,
 };
 
+// Earth texture URLs (NASA Blue Marble via three-globe)
+const EARTH_DAY_URL = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+const EARTH_BUMP_URL = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
+
 // Globe sizing defaults and visual bleed configuration
 const GLOBE_RADIUS_DEFAULT = 2.4; // default globe radius
 const TOP_EXTEND_DEFAULT = 48;
@@ -826,7 +830,26 @@ const GlobeApps: React.FC = () => {
     };
   }, []);
 
-  
+  // Earth textures (loaded imperatively to avoid Suspense complexity)
+  const [earthDayMap, setEarthDayMap] = useState<THREE.Texture | null>(null);
+  const [earthBumpMap, setEarthBumpMap] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    loader.load(EARTH_DAY_URL, (tex) => {
+      try { (tex as any).colorSpace = (THREE as any).SRGBColorSpace; } catch {}
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.needsUpdate = true;
+      setEarthDayMap(tex);
+    });
+    loader.load(EARTH_BUMP_URL, (tex) => {
+      tex.generateMipmaps = true;
+      tex.needsUpdate = true;
+      setEarthBumpMap(tex);
+    });
+  }, []);
 
   // Auto-rotate when not dragging: implement inside Canvas via a small helper component
   const AutoRotate: React.FC = () => {
@@ -976,40 +999,40 @@ const GlobeApps: React.FC = () => {
     'linear-gradient(180deg,' +
     [
       '#f8fafc 0%',
-      '#f3f6f9 3%',
-      '#eef2f6 6%',
-      '#e7ecf4 9%',
-      '#dde5ee 12%',
-      '#d0dbe8 15%',
-      '#c1ccdf 18%',
-      '#afbbd3 21%',
-      '#96a7c2 24%',
-      '#7d91b0 27%',
-      '#667c9e 30%',
-      '#536685 33%',
-      '#44556f 36%',
-      '#374559 39%',
-      '#2d3a4a 42%',
-      '#243041 45%',
-      '#1c2838 48%',
-      '#162030 51%',
-      '#121a28 54%',
-      '#0f1622 57%',
-      '#0d131e 60%',
-      '#0c121c 63%',
-      '#0d131e 66%',
-      '#101722 69%',
-      '#141c2a 72%',
-      '#1a2434 75%',
-      '#222f3f 78%',
-      '#2c3c4d 81%',
-      '#3a4d61 84%',
-      '#4d6378 87%',
-      '#6b7f95 90%',
-      '#8e9fb5 92%',
-      '#b3c0d4 94%',
-      '#d8e1ec 96%',
-      '#eef2f7 98%',
+      '#e8f0fa 3%',
+      '#d4e4f6 6%',
+      '#bdd6f2 9%',
+      '#a4c8ee 12%',
+      '#8bbae8 15%',
+      '#74ace2 18%',
+      '#5e9edc 21%',
+      '#4a90d6 24%',
+      '#3882ce 27%',
+      '#2874c6 30%',
+      '#1e68bc 33%',
+      '#165cb2 36%',
+      '#1050a6 39%',
+      '#0c469c 42%',
+      '#0a3e92 45%',
+      '#083888 48%',
+      '#07327e 51%',
+      '#062e76 54%',
+      '#052a6e 57%',
+      '#042868 60%',
+      '#042868 63%',
+      '#052a6e 66%',
+      '#062e76 69%',
+      '#07327e 72%',
+      '#083888 75%',
+      '#0a3e92 78%',
+      '#0e4a9e 81%',
+      '#1458aa 84%',
+      '#1e68bc 87%',
+      '#2e7cc8 90%',
+      '#4a90d6 92%',
+      '#74ace2 94%',
+      '#a4c8ee 96%',
+      '#d4e4f6 98%',
       '#ffffff 100%',
     ].join(', ') +
     ')';
@@ -1040,10 +1063,10 @@ const GlobeApps: React.FC = () => {
         }}
       >
         <SetCameraRef />
-        <hemisphereLight skyColor={0x202033} groundColor={0x08060a} intensity={0.25} />
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[10, 10, 10]} intensity={0.6} />
-        <pointLight position={[-10, -10, -10]} intensity={0.2} />
+        <hemisphereLight skyColor={0x88aacc} groundColor={0x223344} intensity={0.4} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 10]} intensity={0.9} />
+        <pointLight position={[-10, -10, -10]} intensity={0.3} />
 
         {/* Stars background and auto-rotate helper */}
         <StarsBackground />
@@ -1053,7 +1076,7 @@ const GlobeApps: React.FC = () => {
           {/* connections particles (moved inside group so they rotate with the globe) */}
           <Connections positions={positions} radius={globeRadius} />
 
-          {/* Dark globe body */}
+          {/* Earth globe */}
           <mesh
             onPointerDown={(e: any) => {
               try { e.stopPropagation(); } catch {}
@@ -1070,13 +1093,20 @@ const GlobeApps: React.FC = () => {
             }}
           >
             <sphereGeometry args={[globeRadius, 64, 64]} />
-            <meshStandardMaterial color={'#06060a'} metalness={0.15} roughness={0.8} emissive={'#020214'} emissiveIntensity={0.05} />
+            <meshStandardMaterial
+              map={earthDayMap}
+              bumpMap={earthBumpMap}
+              bumpScale={0.05}
+              metalness={0.1}
+              roughness={0.7}
+              color={earthDayMap ? '#ffffff' : '#1a3a5c'}
+            />
           </mesh>
 
-          {/* subtle wireframe overlay */}
+          {/* Atmosphere glow */}
           <mesh>
-            <sphereGeometry args={[globeRadius + 0.03, 32, 32]} />
-            <meshBasicMaterial color={'#6d28d9'} wireframe opacity={0.06} transparent />
+            <sphereGeometry args={[globeRadius * 1.025, 64, 64]} />
+            <meshBasicMaterial color="#4da6ff" transparent opacity={0.1} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
           </mesh>
 
           <Sprites positions={positions} parentRef={groupRef} globeRadius={globeRadius} preloadedTextures={preloadedTextures} onHover={(i, client) => { setHoveredIdx(i); setHoverPos(client || null); }} />
