@@ -629,9 +629,8 @@ const Sprites: React.FC<{ positions: THREE.Vector3[]; parentRef: React.RefObject
         const productId = PRODUCTS[idx] && (PRODUCTS[idx] as any).id ? (PRODUCTS[idx] as any).id : null;
         const isCardapio = productId === 'cardapio';
         const isDelivery = productId === 'delivery';
-        // reduce zoom for cardapio and delivery so contents fit better (zoom out)
-        // cardapio: more zoomed out to show text; delivery: slightly zoomed out to show hamburger
-        const adjScale = isCardapio ? scale * 0.45 : isDelivery ? scale * 0.8 : scale;
+        // Zoom extra no cardápio de mesa e no delivery (maior adjScale = imagem maior no círculo)
+        const adjScale = isCardapio ? scale * 1.18 : isDelivery ? scale * 1.08 : scale;
         const dw = iw * adjScale;
         const dh = ih * adjScale;
         // small vertical adjustments to better frame contents

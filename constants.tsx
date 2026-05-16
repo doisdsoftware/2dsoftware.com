@@ -45,7 +45,7 @@ export const PRODUCTS: Product[] = [
     title: 'App Delivery',
     description: 'Sistema completo de pedidos online, gestão de entregas e integração com meios de pagamento.',
     icon: <Smartphone className="w-8 h-8 text-blue-500" />,
-    href: 'https://gemini-burgueroficial.vercel.app/',
+    href: 'https://cardapiodelivery.2dsoftware.com.br/',
     features: [
       'Carrinho e checkout integrados',
       'Roteirização de entregas',
@@ -84,7 +84,7 @@ export const PRODUCTS: Product[] = [
     title: 'App Cardápio',
     description: 'Cardápio digital interativo para restaurantes com pedidos via QR Code e gestão de mesas.',
     icon: <Smartphone className="w-8 h-8 text-amber-500" />,
-    href: 'https://appcardapio-production.up.railway.app/',
+    href: 'https://cardapiomesa.2dsoftware.com.br/',
     image: imgCardapio,
     features: [
       'Cardápio com imagens e descrições',
