@@ -1,0 +1,2 @@
+subdomain=cityexplorer.2dsoftware.com.br
+google.com, pub-3523537548321103, DIRECT, f08c47fec0942fa0

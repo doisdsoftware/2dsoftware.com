@@ -1,0 +1,104 @@
+---
+description: Mapa completo do site institucional 2D Software — stack, estrutura, conteúdo e convenções
+alwaysApply: true
+---
+
+# 2D Software — site institucional (2dsoftware.com)
+
+## Empresa
+- **2D Software LTDA** — Campos do Jordão, SP (Serra da Mantiqueira)
+- Fundadores: Daniel Baisso e Douglas Moraes
+- Contato: WhatsApp `(12) 99777-5889` → `https://wa.me/5512997775889`
+- E-mail: `softwarehouse@2dsoftware.com.br`
+- Instagram: `@2dsoftwares` → `https://www.instagram.com/2dsoftwares/`
+
+## Stack
+- **React 18** + **TypeScript** + **Vite 6** (porta **3000**, `host: 0.0.0.0`)
+- **Tailwind 3** + PostCSS (`tailwind.config.cjs`, `postcss.config.cjs`)
+- **Framer Motion** — animações e scroll
+- **Three.js** + **@react-three/fiber** — globo 3D (`GlobeApps.tsx`, ~1200 linhas)
+- **lucide-react** — ícones
+- SPA single-page; sem backend/API no repo
+
+## Scripts
+- `npm run dev` → `http://localhost:3000/`
+- `npm run build` / `npm run preview`
+
+## Estrutura de pastas
+```
+App.tsx              # Orquestra seções + ConsentGate + Navbar fora do overflow-x
+index.tsx            # Mount React + filtros console (MetaMask/SES/THREE)
+index.html           # pt-BR, fonts Google (Inter + Sora), sem import map
+index.css            # Tailwind + .glass, .text-gradient, scroll-margin-top nas âncoras
+constants.tsx        # NAV_ITEMS, PRODUCTS, FEATURES (fonte principal de conteúdo)
+types.ts             # NavItem, Product, Feature
+constants/consent.ts # LGPD banner: localStorage, CONSENT_POLICY_VERSION=4
+utils/scrollToHash.ts # Navegação âncora com offset da navbar (mobile-safe)
+components/          # UI por seção
+logo/                # Logos dos apps (PNG)
+textures/            # earth-day.jpg, earth-normal.jpg, earth-clouds.png, earth-lights.png
+src/styles/cards-3d.css
+```
+
+## Fluxo da página (`App.tsx`)
+Ordem no `<main>`:
+1. **Hero** (`#` implícito) — H1 “Software de alto impacto”, terminal animado, CTAs WhatsApp + `#produtos`
+2. **About** `#sobre` — história Mantiqueira, especialidades
+3. **GlobeApps** `#ecossistema` — globo Terra 3D + sprites dos apps + `GlobeAmbientBridge` (cometas CSS)
+4. **Products** `#produtos` — cards de `PRODUCTS` (links externos)
+5. **SitesSection** `#sites` — serviços de sites + card “Destaques” (tech badges)
+6. **Features** `#vantagens` — grid clicável → modal com detalhes (`FEATURES`)
+7. **TechSection** `#tecnologia` — tipos de aplicação (mobile, SaaS, mapas…)
+8. **Footer** — CTAs, mapa do site, modais legais, Instagram
+
+**Fora do main:** `AnimatedBackground` (fixo, araucárias, neve digital, bondinho), `ConsentGate`, `Navbar` (fixo z-70/110).
+
+## Navegação
+- `NAV_ITEMS` (navbar): Sobre, Globo, Produtos, Sites, Vantagens — **sem** Tecnologia
+- `footerNav` inclui também **Tecnologia** `#tecnologia`
+- Âncoras: `handleInternalHashClick` + `scroll-margin-top` em `index.css`
+
+## Produtos (`constants.tsx` → globo + cards)
+| id | título | URL produção |
+|----|--------|----------------|
+| fidelidade | App Cartão Fidelidade | `https://appfidelidade-production.up.railway.app/` |
+| delivery | App Delivery | `https://cardapiodelivery.2dsoftware.com.br/` |
+| explorer | City Explorer | `https://cityexplorer.2dsoftware.com.br/` |
+| agendai | App AgendAI | `https://agend-ai-jade.vercel.app/` |
+| cardapio | App Cardápio | `https://cardapiomesa.2dsoftware.com.br/` |
+
+Logos no globo: `GlobeApps` `IMAGE_MAP` por `product.id` + imports em `logo/`.
+
+## Legal / consentimento
+- `ConsentGate` — banner inferior até aceitar; `localStorage` key `2dsoftware_site_consent`
+- `LegalModal` + `LegalDocuments` (TermsContent, PrivacyContent) — LGPD, usados no gate e no footer
+- Alterar política → incrementar `CONSENT_POLICY_VERSION` em `constants/consent.ts`
+
+## Globo (`GlobeApps.tsx`)
+- `EarthScene` com texturas reais (day, normal, clouds, lights)
+- `Sprites` — bolhas com logos, oclusão atrás do globo (ghost), conexões com partículas
+- `GlobeAmbientBridge` — cometas Framer Motion sobre o fundo (respeita `prefers-reduced-motion`)
+- Drag + auto-rotação; responsivo (raio/altura por viewport)
+
+## Componentes legados (não usados no App)
+- `EcosystemSection.tsx`, `EcossistemaParticulas.tsx` — versões antigas do ecossistema
+
+## Convenções de código
+- Conteúdo editável: preferir `constants.tsx` (produtos, features, nav)
+- Estilo: Tailwind + classes utilitárias `.glass`, `.text-gradient`
+- Navbar/mobile: z-index alto, overlay para fechar menu; não colocar `overflow-x-hidden` em ancestrais de `fixed` (quebra toques no mobile)
+- Sem `GEMINI_API_KEY` no vite.config
+- Responder ao usuário em **português**
+- Commits/PRs só quando pedido explicitamente
+
+## AdMob / app-ads.txt (somente verificação no site institucional)
+- Arquivo estático: `public/app-ads.txt` → URL `https://2dsoftware.com.br/app-ads.txt` após deploy
+- **Não** exibir anúncios neste site; ads só no app **cityexplorer.2dsoftware.com.br**
+- Publisher ID: `pub-3523537548321103`
+- `public/_redirects` (Netlify) e `vercel.json` (headers) evitam que SPA engula o `.txt`
+
+## Pontos de atenção
+- `tailwind.config.cjs` content `./**/*.{ts,tsx}` pode escanear `node_modules` (build lento)
+- Bundle JS grande (~1MB+) por Three.js
+- `logo.svg` referenciado no Navbar como fallback — verificar se existe em `logo/`
+- SEO: só `<title>` no HTML; meta OG ainda não implementadas
