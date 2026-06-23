@@ -91,11 +91,13 @@ Logos no globo: `GlobeApps` `IMAGE_MAP` por `product.id` + imports em `logo/`.
 - Responder ao usuário em **português**
 - Commits/PRs só quando pedido explicitamente
 
-## AdMob / app-ads.txt (somente verificação no site institucional)
-- Arquivo estático: `public/app-ads.txt` → URL `https://2dsoftware.com.br/app-ads.txt` após deploy
-- **Não** exibir anúncios neste site; ads só no app **cityexplorer.2dsoftware.com.br**
-- Publisher ID: `pub-3523537548321103`
-- `public/_redirects` (Netlify) e `vercel.json` (headers) evitam que SPA engula o `.txt`
+## AdMob / AdSense — arquivos no site institucional (sem exibir anúncios aqui)
+- `public/ads.txt` e `public/app-ads.txt` → após deploy: `/ads.txt` e `/app-ads.txt`
+- Publisher: `pub-3523537548321103`; anúncios só em **cityexplorer.2dsoftware.com.br**
+- Railway: `server.mjs` serve os `.txt` como `text/plain` antes do fallback SPA (`npm run start`)
+- **DNS crítico:** apex `2dsoftware.com.br` e `www` devem apontar para o **mesmo** serviço Railway. Se só `www` funcionar, o Google (que rastreia o apex) verá 404
+- **Nenhuma variável de ambiente no Railway deste repo** é necessária para os `.txt`; ads no subdomínio usam env/SDK no projeto City Explorer
+- **Sem variáveis de ambiente** no Railway para este arquivo
 
 ## Pontos de atenção
 - `tailwind.config.cjs` content `./**/*.{ts,tsx}` pode escanear `node_modules` (build lento)
