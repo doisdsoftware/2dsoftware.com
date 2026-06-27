@@ -25,11 +25,11 @@ const LOGO_FIDELIDADE = new URL('../logo/Logo app fidelidade.png', import.meta.u
 const LOGO_AGENDAI = new URL('../logo/Logo AgendAI.png', import.meta.url).href;
 
 const APPS: AppNode[] = [
-  { id: 'delivery', name: 'App Delivery', href: 'https://cardapiodelivery.2dsoftware.com.br/', status: 'Ativo', imgSrc: LOGO_DELIVERY } as any,
+  { id: 'delivery', name: 'App Delivery', href: 'https://cardapiodelivery.2dsoftware.com.br/admin', status: 'Ativo', imgSrc: LOGO_DELIVERY } as any,
   { id: 'explorer', name: 'City Explorer', href: 'https://cityexplorer.2dsoftware.com.br/', status: 'Ativo', imgSrc: LOGO_EXPLORER } as any,
-  { id: 'fidelidade', name: 'App Fidelidade', href: 'https://appfidelidade-production.up.railway.app/', status: 'Em desenvolvimento', imgSrc: LOGO_FIDELIDADE } as any,
+  { id: 'fidelidade', name: 'PDV', href: 'https://pdvonline.2dsoftware.com.br/login', status: 'Em desenvolvimento', imgSrc: LOGO_FIDELIDADE } as any,
   { id: 'cardapio', name: 'App Cardápio', href: 'https://cardapiomesa.2dsoftware.com.br/', status: 'Em desenvolvimento', imgSrc: LOGO_CARDAPIO } as any,
-  { id: 'agendai', name: 'App AgendAI', href: 'https://agend-ai-jade.vercel.app/', status: 'Em desenvolvimento', imgSrc: LOGO_AGENDAI } as any,
+  { id: 'agendai', name: 'App AgendAI', href: 'https://agendai.2dsoftware.com.br/', status: 'Em desenvolvimento', imgSrc: LOGO_AGENDAI } as any,
   { id: 'dashboard', name: 'Dashboard', href: '#dashboard', status: 'Futuro' },
 ];
 

@@ -5,7 +5,7 @@ import imgFidelidade from './logo/Logo app fidelidade.png';
 import { 
   Smartphone, 
   Map as MapIcon, 
-  CreditCard, 
+  Receipt, 
   Code2, 
   Zap, 
   Layers, 
@@ -28,16 +28,17 @@ export const NAV_ITEMS: NavItem[] = [
 export const PRODUCTS: Product[] = [
   {
     id: 'fidelidade',
-    title: 'App de Cartão Fidelidade',
-    description: 'Plataforma digital para retenção de clientes focada em pequenos e médios estabelecimentos locais.',
-    icon: <CreditCard className="w-8 h-8 text-emerald-400" />,
-    href: 'https://appfidelidade-production.up.railway.app/',
+    title: 'PDV',
+    description: 'Ponto de venda online para registrar vendas, controlar caixa, emitir notas fiscais e acompanhar o fluxo do estabelecimento em tempo real.',
+    icon: <Receipt className="w-8 h-8 text-emerald-400" />,
+    href: 'https://pdvonline.2dsoftware.com.br/login',
     image: imgFidelidade,
     features: [
-      'Acúmulo de pontos digitais',
-      'Resgate de benefícios simplificado',
-      'Ideal para lava jatos e restaurantes',
-      'Relatórios de engajamento para o dono'
+      'Vendas e fechamento de caixa',
+      'Emissão de notas fiscais',
+      'Controle de produtos e estoque',
+      'Relatórios e histórico de movimentação',
+      'Acesso web de qualquer dispositivo'
     ]
   },
   {
@@ -45,7 +46,7 @@ export const PRODUCTS: Product[] = [
     title: 'App Delivery',
     description: 'Sistema completo de pedidos online, gestão de entregas e integração com meios de pagamento.',
     icon: <Smartphone className="w-8 h-8 text-blue-500" />,
-    href: 'https://cardapiodelivery.2dsoftware.com.br/',
+    href: 'https://cardapiodelivery.2dsoftware.com.br/admin',
     features: [
       'Carrinho e checkout integrados',
       'Roteirização de entregas',
@@ -71,7 +72,7 @@ export const PRODUCTS: Product[] = [
     title: 'App AgendAI',
     description: 'Agenda inteligente para gerenciamento de compromissos com assistente automatizado.',
     icon: <Smartphone className="w-8 h-8 text-indigo-500" />,
-    href: 'https://agend-ai-jade.vercel.app/',
+    href: 'https://agendai.2dsoftware.com.br/',
     features: [
       'Agendamento automatizado',
       'Lembretes por push',

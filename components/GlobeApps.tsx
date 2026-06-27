@@ -4,7 +4,6 @@ import * as THREE from 'three';
 // enable three.js cache so preloaded textures are reused by TextureLoader / useLoader
 (THREE as any).Cache.enabled = true;
 import { PRODUCTS } from '../constants';
-import GlobeAmbientBridge from './GlobeAmbientBridge';
 
 // Import local logos from `logo/` folder
 import imgCardapio from '../logo/App cardapio.png';
@@ -57,63 +56,6 @@ const ATMO_FRAG = `
 const GLOBE_RADIUS_DEFAULT = 2.4; // default globe radius
 const TOP_EXTEND_DEFAULT = 48;
 const BOTTOM_EXTEND_DEFAULT = 28;
-
-  // StarsBackground: realistic starfield with variable brightness and subtle twinkle
-  const StarsBackground: React.FC = () => {
-  const ref = useRef<THREE.Group | null>(null);
-  const matRef = useRef<THREE.PointsMaterial | null>(null);
-  // increase star count so small particles are more visible
-  const count = 600;
-  const positions = useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const r = 20 + Math.random() * 40;
-      const theta = Math.acos(2 * Math.random() - 1);
-      const phi = Math.random() * Math.PI * 2;
-      const x = r * Math.sin(theta) * Math.cos(phi);
-      const y = r * Math.sin(theta) * Math.sin(phi);
-      const z = r * Math.cos(theta) - 10;
-      arr[i * 3] = x;
-      arr[i * 3 + 1] = y;
-      arr[i * 3 + 2] = z;
-    }
-    return arr;
-  }, []);
-
-  const colors = useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const b = 0.7 + Math.random() * 0.5;
-      arr[i * 3] = b;
-      arr[i * 3 + 1] = b;
-      arr[i * 3 + 2] = b;
-    }
-    return arr;
-  }, []);
-
-  useFrame((state) => {
-    if (!ref.current) return;
-    ref.current.rotation.y += 0.0015;
-    if (matRef.current) {
-      // subtle global twinkle
-      matRef.current.opacity = 0.85 + Math.sin(state.clock.elapsedTime * 1.6) * 0.06;
-    }
-  });
-
-  return (
-    <group ref={ref}>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" array={positions} itemSize={3} count={positions.length / 3} />
-          <bufferAttribute attachObject={["attributes", "color"]} array={colors} itemSize={3} count={colors.length / 3} />
-        </bufferGeometry>
-        <pointsMaterial ref={matRef as any} vertexColors size={1.2} sizeAttenuation color={0xffffff} transparent opacity={0.95} depthWrite={false} blending={THREE.AdditiveBlending} />
-      </points>
-    </group>
-  );
-};
-
-
 
 // Connections: draw continuous tubes between app positions and animate a small glow moving along each curve
 const Connections: React.FC<{ positions: THREE.Vector3[]; radius?: number }> = ({ positions, radius = GLOBE_RADIUS_DEFAULT }) => {
@@ -1121,7 +1063,6 @@ const GlobeApps: React.FC = () => {
       aria-label="Ecossistema de aplicativos"
       style={{ background: sectionGradient }}
     >
-      <GlobeAmbientBridge squareCount={viewportW < 640 ? 16 : viewportW < 1024 ? 24 : 32} />
     <div ref={wrapperRef} style={{ width: '100%', minHeight: 360, height: `calc(${containerHeight}px + 2cm)`, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 20, overflow: 'visible', touchAction: 'pan-y', userSelect: 'none' }}>
       <Canvas
         camera={{ position: [0, 0, 8], fov: 50 }}
@@ -1146,8 +1087,6 @@ const GlobeApps: React.FC = () => {
         <directionalLight position={[-4, -2, -6]} intensity={0.15} color="#334466" />
         <pointLight position={[-10, -10, -10]} intensity={0.2} color="#182848" />
 
-        {/* Stars background and auto-rotate helper */}
-        <StarsBackground />
         <AutoRotate />
 
         <group ref={groupRef}>
