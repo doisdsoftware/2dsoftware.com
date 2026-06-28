@@ -91,12 +91,12 @@ Logos no globo: `GlobeApps` `IMAGE_MAP` por `product.id` + imports em `logo/`.
 - Responder ao usuário em **português**
 - Commits/PRs só quando pedido explicitamente
 
-## AdMob / AdSense — arquivos no site institucional (sem exibir anúncios aqui)
-- `public/ads.txt` e `public/app-ads.txt` → após deploy: `/ads.txt` e `/app-ads.txt`
-- Publisher: `pub-3523537548321103`; anúncios só em **cityexplorer.2dsoftware.com.br**
-- Railway: `server.mjs` serve os `.txt` como `text/plain` antes do fallback SPA (`npm run start`)
-- **DNS crítico:** apex `2dsoftware.com.br` e `www` devem apontar para o **mesmo** serviço Railway. Se só `www` funcionar, o Google (que rastreia o apex) verá 404
-- **Nenhuma variável de ambiente no Railway deste repo** é necessária para os `.txt`; ads no subdomínio usam env/SDK no projeto City Explorer
+## AdMob / AdSense — site institucional
+- `public/ads.txt` + `public/app-ads.txt`; `server.mjs` serve ambos como `text/plain`
+- `index.html`: meta `google-adsense-account` + script `adsbygoogle.js` (verificação AdSense no domínio raiz)
+- Publisher: `ca-pub-3523537548321103` / `pub-3523537548321103`
+- Anúncios exibidos no **cityexplorer.2dsoftware.com.br**, não neste site (sem unidades `<ins>` aqui)
+- **DNS:** apex `2dsoftware.com.br` deve apontar ao mesmo Railway que `www`
 - **Sem variáveis de ambiente** no Railway para este arquivo
 
 ## Pontos de atenção
