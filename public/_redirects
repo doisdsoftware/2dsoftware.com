@@ -1,4 +1,13 @@
-# Netlify / SPA: servir arquivos de verificação AdSense/AdMob antes do fallback
-/ads.txt       /ads.txt       200
-/app-ads.txt   /app-ads.txt   200
-/*             /index.html    200
+# Netlify / SPA: arquivos estáticos e páginas legais antes do fallback
+/ads.txt            /ads.txt            200
+/app-ads.txt        /app-ads.txt        200
+/privacidade        /privacidade/index.html  200
+/privacidade/       /privacidade/index.html  200
+/privacidade.html   /privacidade/index.html  200
+/termos             /termos/index.html  200
+/termos/            /termos/index.html  200
+/termos.html        /termos/index.html  200
+/exclusao-dados     /exclusao-dados/index.html  200
+/exclusao-dados/    /exclusao-dados/index.html  200
+/exclusao-dados.html /exclusao-dados/index.html  200
+/*                  /index.html         200

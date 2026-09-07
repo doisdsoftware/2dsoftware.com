@@ -1,9 +1,6 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Mail, MapPin, Phone } from 'lucide-react';
-import LegalModal from './LegalModal';
-import { PrivacyContent, TermsContent } from './LegalDocuments';
 import { LEGAL, LEGAL_ADDRESS_LINE } from '../constants/legal';
 import { handleInternalHashClick } from '../utils/scrollToHash';
 
@@ -23,12 +20,10 @@ const footerNav = [
 ];
 
 const Footer: React.FC = () => {
-  const [legal, setLegal] = useState<'terms' | 'privacy' | null>(null);
-
   return (
     <footer className="pt-24 pb-12 px-6 border-t border-blue-100 bg-white relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
-      
+
       <div className="container mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 mb-24">
           <motion.div
@@ -40,15 +35,15 @@ const Footer: React.FC = () => {
               Pronto para o <span className="text-gradient">próximo nível?</span>
             </h2>
             <div className="flex flex-col sm:flex-row gap-5">
-              <a 
-                href={LEGAL.whatsappUrl} 
+              <a
+                href={LEGAL.whatsappUrl}
                 className="flex items-center justify-center space-x-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30"
               >
                 <MessageCircle className="w-6 h-6" />
                 <span className="text-lg">WhatsApp</span>
               </a>
-              <a 
-                href={`mailto:${LEGAL.email}`} 
+              <a
+                href={`mailto:${LEGAL.email}`}
                 className="flex items-center justify-center space-x-3 px-10 py-5 glass rounded-2xl font-bold hover:bg-blue-50 transition-all border border-blue-200 text-slate-700"
                 aria-label={`Enviar e-mail para ${LEGAL.email}`}
               >
@@ -115,20 +110,15 @@ const Footer: React.FC = () => {
             <p className="font-medium text-slate-500/90">{LEGAL_ADDRESS_LINE}</p>
           </div>
           <div className="flex flex-wrap justify-center md:justify-end items-center gap-4 md:gap-6">
-            <button
-              type="button"
-              onClick={() => setLegal('privacy')}
-              className="hover:text-blue-600 transition-colors"
-            >
+            <a href="/privacidade/" className="hover:text-blue-600 transition-colors">
               Privacidade
-            </button>
-            <button
-              type="button"
-              onClick={() => setLegal('terms')}
-              className="hover:text-blue-600 transition-colors"
-            >
+            </a>
+            <a href="/termos/" className="hover:text-blue-600 transition-colors">
               Termos de uso
-            </button>
+            </a>
+            <a href="/exclusao-dados/" className="hover:text-blue-600 transition-colors">
+              Exclusão de dados
+            </a>
             <a
               href="https://www.instagram.com/2dsoftwares/"
               target="_blank"
@@ -146,13 +136,6 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <LegalModal open={legal === 'terms'} title="Termos de uso" onClose={() => setLegal(null)}>
-        <TermsContent />
-      </LegalModal>
-      <LegalModal open={legal === 'privacy'} title="Política de privacidade" onClose={() => setLegal(null)}>
-        <PrivacyContent />
-      </LegalModal>
     </footer>
   );
 };
