@@ -78,7 +78,7 @@ const Features: React.FC = () => {
                   </ul>
                 )}
                 <div className="mt-6 flex items-center gap-3">
-                  <a href="https://wa.me/5512997775889" target="_blank" rel="noreferrer" className="px-4 py-2 bg-blue-600 text-white rounded-md font-bold">Solicitar</a>
+                  <a href="https://wa.me/5512991676955" target="_blank" rel="noreferrer" className="px-4 py-2 bg-blue-600 text-white rounded-md font-bold">Solicitar</a>
                   <button onClick={() => setSelected(null)} className="px-4 py-2 border rounded-md">Fechar</button>
                 </div>
               </div>

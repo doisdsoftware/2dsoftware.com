@@ -6,11 +6,14 @@ alwaysApply: true
 # 2D Software — site institucional (2dsoftware.com)
 
 ## Empresa
-- **2D Software LTDA** — Campos do Jordão, SP (Serra da Mantiqueira)
-- Fundadores: Daniel Baisso e Douglas Moraes
-- Contato: WhatsApp `(12) 99777-5889` → `https://wa.me/5512997775889`
+- **2D Software** (nome fantasia) — MEI de **Daniel Aparecido Baisso**
+- Nome empresarial (CCMEI): `65.403.517 DANIEL APARECIDO BAISSO`
+- CNPJ: `65.403.517/0001-77`
+- Endereço: Rua João Rodrigues da Silva, 315 — Vila Fracalanza, Campos do Jordão/SP — CEP 12467-200
+- Contato: WhatsApp `(12) 99167-6955` → `https://wa.me/5512991676955`
 - E-mail: `softwarehouse@2dsoftware.com.br`
 - Instagram: `@2dsoftwares` → `https://www.instagram.com/2dsoftwares/`
+- Dados legais editáveis: `constants/legal.ts`
 
 ## Stack
 - **React 18** + **TypeScript** + **Vite 6** (porta **3000**, `host: 0.0.0.0`)

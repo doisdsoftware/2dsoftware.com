@@ -1,5 +1,5 @@
 /** Incremente quando alterar termos/privacidade de forma relevante para solicitar novo consentimento. */
-export const CONSENT_POLICY_VERSION = 4;
+export const CONSENT_POLICY_VERSION = 5;
 
 export const CONSENT_STORAGE_KEY = '2dsoftware_site_consent';
 

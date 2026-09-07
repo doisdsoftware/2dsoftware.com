@@ -1,11 +1,13 @@
 import React from 'react';
+import { LEGAL, LEGAL_ADDRESS_LINE } from '../constants/legal';
 
 export const TermsContent: React.FC = () => (
   <>
     <p className="mb-4 text-slate-700">
       Os presentes <strong>Termos de Uso</strong> (&quot;Termos&quot;) regulam o acesso e a utilização do site institucional
-      disponibilizado pela <strong>2D Software LTDA</strong>, pessoa jurídica com sede em Campos do Jordão, Estado de São
-      Paulo, Brasil (&quot;<strong>2D Software</strong>&quot;, &quot;nós&quot; ou &quot;nosso&quot;).
+      disponibilizado por <strong>{LEGAL.legalName}</strong>, Microempreendedor Individual (MEI), CNPJ{' '}
+      <strong>{LEGAL.cnpj}</strong>, com endereço comercial em {LEGAL_ADDRESS_LINE}, Brasil, operando sob a marca{' '}
+      <strong>{LEGAL.tradeName}</strong> (&quot;<strong>2D Software</strong>&quot;, &quot;nós&quot; ou &quot;nosso&quot;).
     </p>
     <p className="mb-4 text-slate-700">
       A utilização deste site implica a ciência e a concordância integral com estes Termos e com a nossa{' '}
@@ -91,13 +93,13 @@ export const TermsContent: React.FC = () => (
     </h3>
     <p className="mb-4">
       Para dúvidas sobre estes Termos, entre em contato pelo e-mail{' '}
-      <a className="font-semibold text-blue-600 hover:underline" href="mailto:softwarehouse@2dsoftware.com.br">
-        softwarehouse@2dsoftware.com.br
+      <a className="font-semibold text-blue-600 hover:underline" href={`mailto:${LEGAL.email}`}>
+        {LEGAL.email}
       </a>
       .
     </p>
     <p className="mt-8 border-t border-slate-100 pt-4 text-xs text-slate-500">
-      Documento elaborado para fins institucionais. Última revisão: <strong>abril de 2026</strong>.
+      Documento elaborado para fins institucionais. Última revisão: <strong>setembro de 2026</strong>.
     </p>
   </>
 );
@@ -105,19 +107,21 @@ export const TermsContent: React.FC = () => (
 export const PrivacyContent: React.FC = () => (
   <>
     <p className="mb-4 text-slate-700">
-      A <strong>2D Software LTDA</strong> (&quot;2D Software&quot;, &quot;nós&quot;) leva a privacidade e a proteção de
-      dados pessoais a sério. Esta <strong>Política de Privacidade</strong> descreve, de forma clara e transparente, como
-      tratamos informações no contexto deste <strong>site institucional</strong>, em conformidade com a Lei Geral de
-      Proteção de Dados (Lei nº 13.709/2018 — LGPD).
+      A <strong>{LEGAL.tradeName}</strong> (&quot;2D Software&quot;, &quot;nós&quot;), marca comercial de{' '}
+      <strong>{LEGAL.legalName}</strong>, Microempreendedor Individual (MEI), CNPJ <strong>{LEGAL.cnpj}</strong>, leva a
+      privacidade e a proteção de dados pessoais a sério. Esta <strong>Política de Privacidade</strong> descreve, de forma
+      clara e transparente, como tratamos informações no contexto deste <strong>site institucional</strong>, em conformidade
+      com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).
     </p>
 
     <h3 className="mb-2 mt-8 border-b border-slate-200 pb-2 text-sm font-bold uppercase tracking-wide text-slate-900">
       1. Controlador e escopo
     </h3>
     <p className="mb-4">
-      <strong>Controlador:</strong> 2D Software LTDA, com sede em Campos do Jordão, SP. Esta
-      política aplica-se exclusivamente aos dados tratados por meio deste site e dos canais de contato nele indicados,
-      não abrangendo produtos ou serviços de clientes hospedados em infraestruturas de terceiros, salvo menção expressa.
+      <strong>Controlador:</strong> {LEGAL.legalName}, MEI, CNPJ {LEGAL.cnpj}, com endereço comercial em{' '}
+      {LEGAL_ADDRESS_LINE}. Esta política aplica-se exclusivamente aos dados tratados por meio deste site e dos canais de
+      contato nele indicados, não abrangendo produtos ou serviços de clientes hospedados em infraestruturas de terceiros,
+      salvo menção expressa.
     </p>
     <p className="mb-4">
       <strong>Encarregado de dados (DPO):</strong> solicitações relacionadas à LGPD podem ser encaminhadas ao mesmo canal
@@ -220,12 +224,12 @@ export const PrivacyContent: React.FC = () => (
       10. Contato
     </h3>
     <p className="mb-4">
-      <a className="font-semibold text-blue-600 hover:underline" href="mailto:softwarehouse@2dsoftware.com.br">
-        softwarehouse@2dsoftware.com.br
+      <a className="font-semibold text-blue-600 hover:underline" href={`mailto:${LEGAL.email}`}>
+        {LEGAL.email}
       </a>
     </p>
     <p className="mt-8 border-t border-slate-100 pt-4 text-xs text-slate-500">
-      Última revisão: <strong>abril de 2026</strong>.
+      Última revisão: <strong>setembro de 2026</strong>.
     </p>
   </>
 );

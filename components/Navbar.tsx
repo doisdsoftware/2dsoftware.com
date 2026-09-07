@@ -87,7 +87,7 @@ const Navbar: React.FC = () => {
             </motion.a>
           ))}
           <motion.a
-            href="https://wa.me/5512997775889"
+            href="https://wa.me/5512991676955"
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -136,7 +136,7 @@ const Navbar: React.FC = () => {
                 </a>
               ))}
               <a
-                href="https://wa.me/5512997775889"
+                href="https://wa.me/5512991676955"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileMenuOpen(false)}

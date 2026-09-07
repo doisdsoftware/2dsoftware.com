@@ -87,7 +87,7 @@ const Hero: React.FC = () => {
           
           <div className="flex flex-col sm:flex-row gap-6">
             <motion.a
-              href="https://wa.me/5512997775889"
+              href="https://wa.me/5512991676955"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               className="flex items-center justify-center space-x-3 px-6 py-3 sm:px-10 sm:py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-blue-600/30"

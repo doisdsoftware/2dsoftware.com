@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { MessageCircle, Mail, MapPin, Phone } from 'lucide-react';
 import LegalModal from './LegalModal';
 import { PrivacyContent, TermsContent } from './LegalDocuments';
+import { LEGAL, LEGAL_ADDRESS_LINE } from '../constants/legal';
 import { handleInternalHashClick } from '../utils/scrollToHash';
 
 const InstagramGlyph: React.FC<{ className?: string }> = ({ className }) => (
@@ -40,16 +41,16 @@ const Footer: React.FC = () => {
             </h2>
             <div className="flex flex-col sm:flex-row gap-5">
               <a 
-                href="https://wa.me/5512997775889" 
+                href={LEGAL.whatsappUrl} 
                 className="flex items-center justify-center space-x-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30"
               >
                 <MessageCircle className="w-6 h-6" />
                 <span className="text-lg">WhatsApp</span>
               </a>
               <a 
-                href="mailto:softwarehouse@2dsoftware.com.br" 
+                href={`mailto:${LEGAL.email}`} 
                 className="flex items-center justify-center space-x-3 px-10 py-5 glass rounded-2xl font-bold hover:bg-blue-50 transition-all border border-blue-200 text-slate-700"
-                aria-label="Enviar e-mail para softwarehouse@2dsoftware.com.br"
+                aria-label={`Enviar e-mail para ${LEGAL.email}`}
               >
                 <Mail className="w-6 h-6" />
                 <span className="text-lg">Solicitar Orçamento</span>
@@ -65,13 +66,13 @@ const Footer: React.FC = () => {
                   <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
                     <Phone className="w-5 h-5" />
                   </div>
-                  <span>(12) 99777-5889</span>
+                  <span>{LEGAL.whatsappDisplay}</span>
                 </li>
                 <li className="flex items-center space-x-4 text-slate-600 font-bold group cursor-pointer">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <span>Campos do Jordão, SP</span>
+                  <span>Campos do Jordão, SP — CEP {LEGAL.cep}</span>
                 </li>
               </ul>
             </div>
@@ -105,9 +106,15 @@ const Footer: React.FC = () => {
           ))}
         </nav>
 
-        <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 text-slate-500 text-sm font-semibold gap-8">
-          <p className="text-center md:text-left">© {new Date().getFullYear()} 2D Software LTDA. Todos os direitos reservados.</p>
-          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6">
+        <div className="flex flex-col gap-6 pt-12 border-t border-slate-100 text-slate-500 text-sm font-semibold md:flex-row md:items-end md:justify-between">
+          <div className="text-center md:text-left space-y-1 leading-relaxed">
+            <p>
+              © {new Date().getFullYear()} {LEGAL.tradeName} — {LEGAL.legalName}
+            </p>
+            <p>CNPJ {LEGAL.cnpj} · Microempreendedor Individual (MEI)</p>
+            <p className="font-medium text-slate-500/90">{LEGAL_ADDRESS_LINE}</p>
+          </div>
+          <div className="flex flex-wrap justify-center md:justify-end items-center gap-4 md:gap-6">
             <button
               type="button"
               onClick={() => setLegal('privacy')}

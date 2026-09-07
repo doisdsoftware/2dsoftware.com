@@ -44,6 +44,14 @@ prints/
 # Exclude coverage
 coverage/
 
+# Documentos pessoais / fiscais (não versionar)
+CCMEI*.pdf
+*CCMEI*
+Cnpj.pdf
+*CNPJ*.pdf
+Cartao*CNPJ*
+
+
 # Exclude test outputs
 *.out
 
